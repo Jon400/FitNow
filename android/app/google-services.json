@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "440181801904",
+    "project_id": "fitnow-bfc20",
+    "storage_bucket": "fitnow-bfc20.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:440181801904:android:86cbdad80b95c4164d4c75",
+        "android_client_info": {
+          "package_name": "com.example.fit_now"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTM2sh_gtPdPLw8f3ZUPoG_Z8kBPtncLQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
