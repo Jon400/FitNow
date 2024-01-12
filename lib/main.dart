@@ -1,48 +1,55 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:fit_now/ui/screens/home/root.dart';
-import 'package:fit_now/ui/screens/authenticate/sign_in.dart';
-import 'package:fit_now/ui/screens/authenticate/sign_up.dart';
-import 'package:fit_now/ui/screens/home/home.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:provider/provider.dart';
 
-void main() async{
-  FirebaseFirestore.instance.settings;
-  SharedPreferences.getInstance().then((prefs) {
-    runApp(MyApp(prefs: prefs));
-  });
+import 'models/app_user.dart';
+
+import 'screens/nav_wrapper.dart';
+
+import 'services/auth.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(PreLauncher());
 }
 
-class MyApp extends StatelessWidget {
-  final SharedPreferences prefs;
-  MyApp({required this.prefs});
+class PreLauncher extends StatelessWidget {
+  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Forest Village GT',
+      title: 'RBAC',
       debugShowCheckedModeBanner: false,
-      routes: <String, WidgetBuilder>{
-        '/root': (BuildContext context) => new RootScreen(),
-        '/signin': (BuildContext context) => new SignInScreen(),
-        '/signup': (BuildContext context) => new SignUpScreen(),
-        '/main': (BuildContext context) => new MainScreen(firebaseUser: auth.FirebaseAuth.instance.currentUser!),
-      },
-      theme: ThemeData(
-        primaryColor: Colors.white,
-        primarySwatch: Colors.grey,
+      home: FutureBuilder(
+        future: _initialization,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            // MaterialApp provides the necessary Directionality context here
+            return Center(
+              // print the reason for the error in the console with small text
+              child: Text('ERROR'),
+            );
+          }
+          if (snapshot.connectionState == ConnectionState.done) {
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (_) => AuthService(),
+                ),
+                StreamProvider<AppUser?>.value(
+                  value: AuthService().appUser,
+                  initialData: AppUser(uid: 'null', emailVerified: false),
+                ),
+              ],
+              builder: (context, child) {
+                return NavWrapper();
+              },
+            );
+          }
+          return Center(child: CircularProgressIndicator());
+        },
       ),
-      home: _handleCurrentScreen(),
     );
-  }
-
-  Widget _handleCurrentScreen() {
-    bool seen = (prefs.getBool('seen') ?? false);
-    if (seen) {
-      return new RootScreen();
-    } else {
-      return RootScreen();
-    }
   }
 }

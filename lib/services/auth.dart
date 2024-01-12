@@ -1,99 +1,115 @@
-import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fit_now/models/user.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
-enum authProblems { UserNotFound, PasswordNotValid, NetworkError, UnknownError }
+import '../models/app_user.dart';
 
-class Auth {
-  static Future<String> signIn(String email, String password) async {
-    FirebaseUser user = await FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: email, password: password);
-    return user.uid;
+import 'auth_exception.dart';
+import 'database.dart';
+
+class AuthService with ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late AuthResultStatus _authStatus;
+
+  Stream<AppUser?> get appUser {
+    return _auth.userChanges().map(_appUserFromFirebaseUser);
   }
 
-  static Future<String> signInWithFacebok(String accessToken) async {
-    FirebaseUser user = await FirebaseAuth.instance
-        .signInWithFacebook(accessToken: accessToken);
-    return user.uid;
+  AppUser? _appUserFromFirebaseUser(User? user) {
+    return user != null
+        ? AppUser(
+            uid: user.uid,
+            emailVerified: user.emailVerified,
+          )
+        : null;
   }
 
-  static Future<String> signUp(String email, String password) async {
-    FirebaseUser user = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: email, password: password);
-    return user.uid;
+  Future<Map<String, dynamic>?> get claims async {
+    final user = _auth.currentUser;
+    final token = await user?.getIdTokenResult(true);
+    return (token?.claims);
   }
 
-  static Future<void> signOut() async {
-    return FirebaseAuth.instance.signOut();
-  }
-
-  static Future<FirebaseUser> getCurrentFirebaseUser() async {
-    FirebaseUser user = await FirebaseAuth.instance.currentUser();
-    return user;
-  }
-
-  static void addUser(User user) async {
-    checkUserExist(user.userID).then((value) {
-      if (!value) {
-        print("user ${user.fullName} ${user.email} added");
-        Firestore.instance
-            .document("users/${user.userID}")
-            .setData(user.toJson());
-      } else {
-        print("user ${user.fullName} ${user.email} exists");
-      }
-    });
-  }
-
-  static Future<bool> checkUserExist(String userID) async {
-    bool exists = false;
+  Future<AuthResultStatus> registerWithEmail({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+  }) async {
     try {
-      await Firestore.instance.document("admins/$userID").get().then((doc) {
-        if (doc.exists)
-          exists = true;
-        else
-          exists = false;
-      });
-      return exists;
+      UserCredential authResult = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      User? user = authResult.user;
+      if (user != null) {
+        await DatabaseService(uid: user.uid).updateProfileName(
+          firstName,
+          lastName,
+        );
+        _authStatus = AuthResultStatus.successful;
+      } else {
+        _authStatus = AuthResultStatus.undefined;
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        _authStatus = AuthResultStatus.weakPassword;
+      } else if (e.code == 'email-already-in-use') {
+        _authStatus = AuthResultStatus.emailAlreadyExists;
+      }
     } catch (e) {
-      return false;
+      print('Login Exception: $e');
+      _authStatus = AuthExceptionHandler.handleException(e);
+    }
+    return _authStatus;
+  }
+
+  Future resetPassword(String email) async {
+    try {
+      return await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print(e.toString());
+      return null;
     }
   }
 
-  static Stream<User> getUser(String userID) {
-    return Firestore.instance
-        .collection("admins")
-        .where("userID", isEqualTo: userID)
-        .snapshots()
-        .map((QuerySnapshot snapshot) {
-      return snapshot.documents.map((doc) {
-        return User.fromDocument(doc);
-      }).first;
-    });
+  Future<AuthResultStatus> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      UserCredential authResult = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      User? user = authResult.user;
+      if (user != null) {
+        _authStatus = AuthResultStatus.successful;
+      } else {
+        _authStatus = AuthResultStatus.undefined;
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        _authStatus = AuthResultStatus.userNotFound;
+      } else if (e.code == 'wrong-password') {
+        _authStatus = AuthResultStatus.wrongPassword;
+      } else if (e.code == 'too-many-requests') {
+        _authStatus = AuthResultStatus.tooManyRequests;
+      }
+    } catch (e) {
+      print('Login Exception: $e');
+      _authStatus = AuthExceptionHandler.handleException(e);
+    }
+    return _authStatus;
   }
 
-  static String getExceptionText(Exception e) {
-    if (e is PlatformException) {
-      switch (e.message) {
-        case 'There is no user record corresponding to this identifier. The user may have been deleted.':
-          return 'User with this e-mail not found.';
-          break;
-        case 'The password is invalid or the user does not have a password.':
-          return 'Invalid password.';
-          break;
-        case 'A network error (such as timeout, interrupted connection or unreachable host) has occurred.':
-          return 'No internet connection.';
-          break;
-        case 'The email address is already in use by another account.':
-          return 'Email address is already taken.';
-          break;
-        default:
-          return 'Unknown error occured.';
-      }
-    } else {
-      return 'Unknown error occured.';
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+      notifyListeners();
+      return null;
+    } catch (e) {
+      print(e.toString());
+      return null;
     }
   }
 }
