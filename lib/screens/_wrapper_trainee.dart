@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 import 'account/index.dart';
-import 'profiles/anon.dart';
+import 'profiles/trainee_profile.dart';
 
-class AnonWrapper extends StatefulWidget {
+class TraineeWrapper extends StatefulWidget {
   @override
-  _AnonWrapperState createState() => _AnonWrapperState();
+  _TraineeWrapperState createState() => _TraineeWrapperState();
 }
 
-class _AnonWrapperState extends State<AnonWrapper> {
+class _TraineeWrapperState extends State<TraineeWrapper> {
   int _selectedPage = 0;
   final _pageOptions = [
-    AnonScreen(),
+    TraineeProfileScreen(),
     AccountScreen(),
   ];
 
@@ -30,8 +30,8 @@ class _AnonWrapperState extends State<AnonWrapper> {
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.masks),
-            label: 'Anonymous',
+            icon: Icon(Icons.verified_user),
+            label: 'Profile',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_box),

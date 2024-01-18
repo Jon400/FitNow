@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models/app_user.dart';
 
+import '../models/profile.dart';
 import 'auth_exception.dart';
 import 'database.dart';
 
@@ -23,17 +25,49 @@ class AuthService with ChangeNotifier {
         : null;
   }
 
+  // Future<Map<String, dynamic>?> get claims async {
+  //   final user = _auth.currentUser;
+  //   // get the profile from the database that matches the user uid
+  //   final token = await user?.getIdTokenResult(true);
+  //   print("Claims: ${token?.claims}"); // Add this line for debugging
+  //   return (token?.claims);
+  // }
+
   Future<Map<String, dynamic>?> get claims async {
     final user = _auth.currentUser;
-    final token = await user?.getIdTokenResult(true);
-    return (token?.claims);
+    if (user != null) {
+      try {
+        // Fetch the document snapshot from Firestore
+        final DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+            .collection('profiles')
+            .doc(user.uid)
+            .get();
+
+        if (docSnapshot.exists) {
+          // Convert the document snapshot to a Profile object
+          Profile profile = Profile.fromFirestore(docSnapshot);
+          return {'roleView': profile.roleView};
+        } else {
+          print('Document does not exist');
+          return null;
+        }
+      } catch (e) {
+        print('Error fetching profile: $e');
+        return null;
+      }
+    } else {
+      print('No current user');
+      return null;
+    }
   }
+
 
   Future<AuthResultStatus> registerWithEmail({
     required String email,
     required String password,
     required String firstName,
     required String lastName,
+    required String roleView,
   }) async {
     try {
       UserCredential authResult = await _auth.createUserWithEmailAndPassword(
@@ -45,6 +79,7 @@ class AuthService with ChangeNotifier {
         await DatabaseService(uid: user.uid).updateProfileName(
           firstName,
           lastName,
+          roleView,
         );
         _authStatus = AuthResultStatus.successful;
       } else {

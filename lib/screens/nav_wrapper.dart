@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import '../models/app_user.dart';
 import '../services/auth.dart';
 
-import '_wrapper_admin.dart';
+import '_wrapper_trainer.dart';
 import '_wrapper_anon.dart';
-import '_wrapper_member.dart';
+import '_wrapper_trainee.dart';
 
 class NavWrapper extends StatelessWidget {
   @override
@@ -25,8 +25,8 @@ class BaseWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     _getRole() async {
       final token = await Provider.of<AuthService>(context).claims;
-      final String roleClaim = token?['role'];
-      final String role = roleClaim ?? 'member';
+      final String roleClaim = token?['roleView'];
+      final String role = roleClaim ?? 'trainee';
       return role;
     }
 
@@ -36,14 +36,14 @@ class BaseWrapper extends StatelessWidget {
           future: _getRole(),
           builder: (context, snapshot) {
             switch (snapshot.data) {
-              case 'member':
-                return MemberWrapper();
+              case 'trainee':
+                return TraineeWrapper();
                 break;
-              case 'admin':
-                return AdminWrapper();
+              case 'trainer':
+                return TrainerWrapper();
                 break;
               default:
-                return MemberWrapper();
+                return TraineeWrapper();
                 break;
             }
           },

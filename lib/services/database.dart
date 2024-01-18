@@ -17,21 +17,20 @@ class DatabaseService {
 
   Profile _profileFromSnapshot(DocumentSnapshot snapshot) {
     return Profile(
-      uid: uid,
-      market: (snapshot.data() as Map<String, dynamic>)?['market'],
+      pid: uid,
       email: (snapshot.data() as Map<String, dynamic>)?['email'],
       roleView: (snapshot.data() as Map<String, dynamic>)?['roleView'],
       firstName: (snapshot.data() as Map<String, dynamic>)?['firstName'],
       lastName: (snapshot.data() as Map<String, dynamic>)?['lastName'],
-      photoUrl: (snapshot.data() as Map<String, dynamic>)?['photoUrl'],
     );
   }
 
-  Future<void> updateProfileName(String firstName, String lastName) async {
+  Future<void> updateProfileName(String firstName, String lastName, String roleView) async {
     return await _profileCollection.doc(uid).set(
       {
         'firstName': firstName,
         'lastName': lastName,
+        'roleView': roleView,
       },
       SetOptions(merge: true),
     );

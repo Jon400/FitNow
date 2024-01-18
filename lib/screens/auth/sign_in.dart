@@ -144,6 +144,17 @@ class _SignInState extends State<SignIn> {
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
                                 setState(() => loading = true);
+                                try {
+                                  await _auth.signInWithEmailAndPassword(
+                                    email: email,
+                                    password: password,
+                                  );
+                                } catch (e) {
+                                  setState(() => loading = false);
+                                  _showAlertDialog("There is no user record corresponding to this identifier. The user may have been deleted.");
+                                  // stop execution
+                                  return;
+                                }
                                 dynamic status =
                                     await _auth.signInWithEmailAndPassword(
                                   email: email,

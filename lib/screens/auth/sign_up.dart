@@ -5,7 +5,7 @@ import '../../services/auth.dart';
 import '../../services/auth_exception.dart';
 import '../../widgets/loading.dart';
 
-enum Role { patron, muse }
+enum Role { trainee, trainer }
 
 class SignUpWrapper extends StatelessWidget {
   final Function toggleView;
@@ -69,6 +69,7 @@ class _SignUpState extends State<SignUp> {
   String error = '';
   String firstName = '';
   String lastName = '';
+  String role = '';
 
   @override
   Widget build(BuildContext context) {
@@ -145,6 +146,31 @@ class _SignUpState extends State<SignUp> {
                           setState(() => lastName = val);
                         },
                       ),
+                      // adding here a drop down menu for role with two
+                      // choices: trainee and trainer
+                      DropdownButtonFormField(
+                        decoration: InputDecoration(
+                          hintText: 'Role',
+                          fillColor: Colors.white,
+                          filled: true,
+                        ),
+                        value: Role.trainee.name, // default value
+                        items: [
+                          DropdownMenuItem(
+                            child: Text("Trainee"),
+                            value: Role.trainee.name,
+                          ),
+                          DropdownMenuItem(
+                            child: Text("Trainer"),
+                            value: Role.trainer.name,
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            role = value.toString();
+                          });
+                        },
+                      ),
                       SizedBox(height: 20.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -167,10 +193,11 @@ class _SignUpState extends State<SignUp> {
                                   setState(() => loading = true);
                                   dynamic status =
                                       await _auth.registerWithEmail(
-                                    email: email,
-                                    password: password,
-                                    firstName: firstName,
-                                    lastName: lastName,
+                                        email: email,
+                                        password: password,
+                                        firstName: firstName,
+                                        lastName: lastName,
+                                        roleView: role,
                                   );
                                   if (status != AuthResultStatus.successful) {
                                     setState(() => loading = false);

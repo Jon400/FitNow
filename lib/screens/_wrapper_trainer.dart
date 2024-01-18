@@ -1,17 +1,18 @@
+import 'package:fit_now/screens/profiles/trainer_profile.dart';
 import 'package:flutter/material.dart';
 
 import 'account/index.dart';
-import 'rbac/member.dart';
+import 'profiles/trainee_profile.dart';
 
-class MemberWrapper extends StatefulWidget {
+class TrainerWrapper extends StatefulWidget {
   @override
-  _MemberWrapperState createState() => _MemberWrapperState();
+  _TrainerWrapperState createState() => _TrainerWrapperState();
 }
 
-class _MemberWrapperState extends State<MemberWrapper> {
+class _TrainerWrapperState extends State<TrainerWrapper> {
   int _selectedPage = 0;
   final _pageOptions = [
-    MemberScreen(),
+    TrainerProfileScreen(),
     AccountScreen(),
   ];
 
@@ -31,7 +32,7 @@ class _MemberWrapperState extends State<MemberWrapper> {
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.verified_user),
-            label: 'Member',
+            label: 'Profile',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_box),
