@@ -76,7 +76,7 @@ class AuthService with ChangeNotifier {
       );
       User? user = authResult.user;
       if (user != null) {
-        await DatabaseService(uid: user.uid).updateProfileName(
+        await DatabaseService(uid: user.uid, roleView: roleView).updateProfileName(
           firstName,
           lastName,
           roleView,
