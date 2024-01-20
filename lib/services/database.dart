@@ -19,9 +19,6 @@ class DatabaseService {
   final CollectionReference _trainingSessionCollection =
       FirebaseFirestore.instance.collection('training_sessions');
 
-  final CollectionReference _userTrainingSessionsCollection =
-      FirebaseFirestore.instance.collection('user_training_sessions');
-
   Stream<Profile> get profile {
     return _profileCollection.doc(uid).snapshots().map(_profileFromSnapshot);
   }
@@ -53,34 +50,44 @@ class DatabaseService {
     );
   }
 
-  Future<void> linkUserToSession(String uid, String tid) async {
-    await _userTrainingSessionsCollection.doc(uid).set(
-      {
-        'tid': tid,
-      },
-      SetOptions(merge: true),
-    );
-  }
-
   Stream<List<TrainingSession>> get trainingSessions {
-    // find all user_training_sessions documents where docid == uid
-    // for each document, get the tid
-    // find all training_sessions documents where docid == tid
-    // return the list of training_sessions documents
-    return _userTrainingSessionsCollection.doc(uid).snapshots().asyncMap(
-      (snapshot) async {
-        List<TrainingSession> sessions = [];
-        if (snapshot.exists) {
-          String tid = (snapshot.data() as Map<String, dynamic>)?['tid'];
-          await _trainingSessionCollection.doc(tid).get().then(
-            (snapshot) {
-              sessions.add(TrainingSession.fromFirestore(snapshot));
-            },
-          );
-        }
-        return sessions;
-      },
-    );
-  }
-
+    // find all training sessions inside user's profile
+    // take the training session id in the field tid
+    // find all training sessions with the tid
+    // return the list of training sessions
+    return _profileCollection
+        .doc(uid)
+        .collection('training_sessions')
+        .snapshots()
+        .asyncMap((snapshot) async {
+      List<TrainingSession> trainingSessions = [];
+      for (var doc in snapshot.docs) {
+        var tid = doc.data()['tid'];
+        var trainingSession = await _trainingSessionCollection.doc(tid).get();
+        trainingSessions.add(TrainingSession.fromFirestore(trainingSession));
+      }
+      return trainingSessions;
+    });
 }
+
+    Future<void> addTrainingSession(String tid) async {
+      return await _profileCollection
+          .doc(uid)
+          .collection('training_sessions')
+          .doc(tid)
+          .set(
+        {
+          'tid': tid,
+        },
+        SetOptions(merge: true),
+      );
+    }
+
+    Future<void> removeTrainingSession(String tid) async {
+      return await _profileCollection
+          .doc(uid)
+          .collection('training_sessions')
+          .doc(tid)
+          .delete();
+    }
+  }
