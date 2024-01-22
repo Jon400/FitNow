@@ -1,4 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../models/app_user.dart';
+import '../../services/database.dart';
+import '../../models/trainer.dart'; // Assuming TrainerProfile is the correct model
+
+List<String> specs = [
+  'Karma',
+  'Hatha',
+  'Vinyasa',
+  // Add more specialization options here
+];
+List<String> sports = [
+  'Yoga',
+  'Pilates',
+  'Meditation',
+  // Add more sport options here
+];
 
 class TraineeSearchPage extends StatefulWidget {
   @override
@@ -12,15 +29,59 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
   TimeOfDay? endTime;
   String selectedSport = 'Yoga';
   String selectedSpec = 'Karma';
+  late Future<List<TrainerProfile>> futureTrainers;
+  late Stream<List<TrainerProfile>> streamTrainer;
+  late AppUser user; // Declare user variable at the class level
 
-  final List<String> sports = ['Yoga', 'Fitness', 'Pilates', 'Swimming'];
-  final List<String> specs = ['Karma', 'Aerial', 'Hatha', 'Vinyasa'];
+  @override
+  void initState() {
+    super.initState();
+    user = Provider.of<AppUser?>(context, listen: false)!; // Initialize user
+    streamTrainer = Stream<List<TrainerProfile>>.empty(); // Initialize streamTrainer
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      // Initialize futureTrainers here
+      searchTrainers(user);
+    });
+  }
 
-  final List<Trainer> trainers = [
-    Trainer(name: "John Doe", sport: "Football", specialization: "Offense", dateTime: DateTime.now().add(Duration(days: 1))),
-    Trainer(name: "Jane Smith", sport: "Tennis", specialization: "Strategy", dateTime: DateTime.now().add(Duration(days: 2))),
-    // Add more trainers
-  ];
+  Future<Stream<List<TrainerProfile>>> searchTrainers(AppUser user) async {
+    // Initialize DatabaseService with user's UID
+    final DatabaseService databaseService = DatabaseService(
+      uid: user.uid,
+      roleView: 'trainee',
+    );
+
+    // Call the search method in DatabaseService
+    final trainers = await databaseService.searchTrainersStream(
+      // combine start date and start tine into a single DateTime object
+      startDate: startDate == null || startTime == null
+          ? null
+          : DateTime(
+              startDate!.year,
+              startDate!.month,
+              startDate!.day,
+              startTime!.hour,
+              startTime!.minute,
+            ),
+      endDate: endDate == null || endTime == null
+          ? null
+          : DateTime(
+              endDate!.year,
+              endDate!.month,
+              endDate!.day,
+              endTime!.hour,
+              endTime!.minute,
+            ),
+      sport: selectedSport.isNotEmpty ? selectedSport : null,
+      specialization: selectedSpec.isNotEmpty ? selectedSpec : null,
+    );
+
+    setState(() {
+      streamTrainer = trainers;
+    });
+
+    return trainers;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +106,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
             onChanged: (String? newValue) {
               setState(() {
                 selectedSport = newValue!;
+                searchTrainers(user);
               });
             },
             items: sports.map<DropdownMenuItem<String>>((String value) {
@@ -59,6 +121,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
             onChanged: (String? newValue) {
               setState(() {
                 selectedSpec = newValue!;
+                searchTrainers(user);
               });
             },
             items: specs.map<DropdownMenuItem<String>>((String value) {
@@ -69,19 +132,31 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
             }).toList(),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: trainers.length,
-              itemBuilder: (context, index) {
-                final trainer = trainers[index];
-                if (_matchesSearchCriteria(trainer)) {
-                  return ListTile(
-                    title: Text(trainer.name),
-                    subtitle: Text('${trainer.sport} - ${trainer.specialization}'),
-                    trailing: Text('${trainer.dateTime}'),
-                  );
-                } else {
-                  return Container();
+            child: StreamBuilder<List<TrainerProfile>>(
+              stream: streamTrainer,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
                 }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('No trainers found'));
+                }
+
+                List<TrainerProfile> trainers = snapshot.data!;
+
+                return ListView.builder(
+                  itemCount: trainers.length,
+                  itemBuilder: (context, index) {
+                    final trainer = trainers[index];
+                    return ListTile(
+                      title: Text(trainer.firstName),
+                      subtitle: Text('${trainer.sport} - ${trainer.specializations.join(', ')}'),
+                    );
+                  },
+                );
               },
             ),
           ),
@@ -105,6 +180,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
       setState(() {
         startDate = pickedDate;
         startTime = pickedTime;
+        searchTrainers(user); // Pass the user to the search method
       });
     }
   }
@@ -124,40 +200,8 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
       setState(() {
         endDate = pickedDate;
         endTime = pickedTime;
+        searchTrainers(user); // Pass the user to the search method
       });
     }
   }
-
-  bool _matchesSearchCriteria(Trainer trainer) {
-    // Start and end DateTime combining date and time
-    DateTime? startDateTime = startDate != null && startTime != null
-        ? DateTime(startDate!.year, startDate!.month, startDate!.day, startTime!.hour, startTime!.minute)
-        : null;
-    DateTime? endDateTime = endDate != null && endTime != null
-        ? DateTime(endDate!.year, endDate!.month, endDate!.day, endTime!.hour, endTime!.minute)
-        : null;
-
-    if (startDateTime != null && trainer.dateTime.isBefore(startDateTime)) {
-      return false;
-    }
-    if (endDateTime != null && trainer.dateTime.isAfter(endDateTime)) {
-      return false;
-    }
-    if (trainer.sport != selectedSport) {
-      return false;
-    }
-    if (trainer.specialization != selectedSpec) {
-      return false;
-    }
-    return true;
-  }
-}
-
-class Trainer {
-  String name;
-  DateTime dateTime;
-  String sport;
-  String specialization;
-
-  Trainer({required this.name, required this.dateTime, required this.sport, required this.specialization});
 }

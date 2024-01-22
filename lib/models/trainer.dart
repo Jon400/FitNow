@@ -21,18 +21,18 @@ class TrainerProfile extends Profile {
   });
 
   factory TrainerProfile.fromFirestore(DocumentSnapshot doc) {
-    Object? data = doc.data();
+    final data = doc.data() as Map<String, dynamic>?;
 
     return TrainerProfile(
       pid: doc.id,
-      email: (data as Map<String, dynamic>)?['email'] ?? '',
-      roleView: data['roleView'] ?? '',
-      firstName: data['firstName'] ?? 'Guest',
-      lastName: data['lastName'] ?? '',
-      logoUrl: data['logoUrl'] ?? '',
-      description: data['description'] ?? '',
-      sport: data['sport'] ?? '',
-      specializations: (data['specializations'] as List<dynamic>).cast<String>(),
+      email: data?['email'] ?? '',
+      roleView: data?['roleView'] ?? '',
+      firstName: data?['firstName'] ?? 'Guest',
+      lastName: data?['lastName'] ?? '',
+      logoUrl: data?['logoUrl'] ?? '',
+      description: data?['description'] ?? '',
+      sport: data?['sport'] ?? '',
+      specializations: (data?['specializations'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
 }
