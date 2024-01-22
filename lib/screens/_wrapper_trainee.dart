@@ -1,3 +1,4 @@
+import 'package:fit_now/screens/search/search_training.dart';
 import 'package:flutter/material.dart';
 
 import 'account/index.dart';
@@ -12,6 +13,7 @@ class _TraineeWrapperState extends State<TraineeWrapper> {
   int _selectedPage = 0;
   final _pageOptions = [
     TraineeProfileScreen(),
+    TraineeSearchPage(),
     AccountScreen(),
   ];
 
@@ -32,6 +34,10 @@ class _TraineeWrapperState extends State<TraineeWrapper> {
           BottomNavigationBarItem(
             icon: Icon(Icons.verified_user),
             label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search_rounded),
+            label: 'Search',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_box),
