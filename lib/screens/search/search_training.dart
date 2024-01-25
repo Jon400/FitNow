@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import '../../models/app_user.dart';
 import '../../models/sport.dart';
 import '../../services/database.dart';
-import '../../models/trainer.dart'; // Assuming TrainerProfile is the correct model
+import '../../models/trainer.dart';
+import '../../services/search_trainers.dart'; // Assuming TrainerProfile is the correct model
 
 List<String> specs = [
   'Karma',
@@ -38,6 +39,9 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
   @override
   void initState() {
     super.initState();
+    // // now
+    selectedSport = sports.first;
+    selectedSpec = specs.first;
     user = Provider.of<AppUser?>(context, listen: false)!; // Initialize user
     streamTrainer = Stream<List<TrainerProfile>>.empty(); // Initialize streamTrainer
     streamSports = Stream<List<Sport>>.empty(); // Initialize streamSports
@@ -63,31 +67,29 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
   }
 
   Future<Stream<List<TrainerProfile>>> searchTrainers(AppUser user) async {
-    // Initialize DatabaseService with user's UID
-    final DatabaseService databaseService = DatabaseService(
-      uid: user.uid,
-      roleView: 'trainee',
-    ); // Call the search method in DatabaseService
-    final trainers = await databaseService.searchTrainersStream(
-      // combine start date and start tine into a single DateTime object
+    // Initialize SearchTrainers instance
+    final searchTrainers = SearchTrainers();
+
+    // Call the search method in SearchTrainers
+    final trainers = searchTrainers.searchTrainersStream(
       startDate: startDate == null || startTime == null
           ? null
           : DateTime(
-              startDate!.year,
-              startDate!.month,
-              startDate!.day,
-              startTime!.hour,
-              startTime!.minute,
-            ),
+        startDate!.year,
+        startDate!.month,
+        startDate!.day,
+        startTime!.hour,
+        startTime!.minute,
+      ),
       endDate: endDate == null || endTime == null
           ? null
           : DateTime(
-              endDate!.year,
-              endDate!.month,
-              endDate!.day,
-              endTime!.hour,
-              endTime!.minute,
-            ),
+        endDate!.year,
+        endDate!.month,
+        endDate!.day,
+        endTime!.hour,
+        endTime!.minute,
+      ),
       sport: selectedSport.isNotEmpty ? selectedSport : null,
       specialization: selectedSpec.isNotEmpty ? selectedSpec : null,
     );
@@ -148,7 +150,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                   setState(() {
                     selectedSport = newValue!;
                     specs = sportsList.firstWhere((s) => s.name == selectedSport).specializations;
-                    selectedSpec = specs.isNotEmpty ? specs.first : 'DefaultSpecValue';
+                    selectedSpec = specs.isNotEmpty ? specs.first : 'DefaultSpecValue'; // Update this line
                     searchTrainers(user);
                   });
                 },
@@ -162,7 +164,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
             },
           ),
           DropdownButton<String>(
-            value: selectedSpec,
+            value: selectedSpec, // Make sure selectedSpec contains a valid value from specs
             onChanged: (String? newValue) {
               setState(() {
                 selectedSpec = newValue!;
@@ -171,7 +173,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
             },
             items: specs.map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
-                value: value,
+                value: value, // Ensure that each value is unique
                 child: Text(value),
               );
             }).toList(),
@@ -197,11 +199,50 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                   itemBuilder: (context, index) {
                     final trainer = trainers[index];
                     return ListTile(
-                      title: Text(trainer.firstName),
-                      subtitle: Text('${trainer.sport} - ${trainer.specializations.join(', ')}'),
+                      title: Text(trainer.firstName + ' ' + trainer.lastName),
+                      subtitle: StreamBuilder<List<String>>(
+                        stream: trainer.getSpecializations(),
+                        builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
+                          print("Snapshot data: ${snapshot.data}");
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Text('Loading specializations...');
+                          } else if (snapshot.hasError) {
+                            print("Error: ${snapshot.error}");
+                            return Text('Error: ${snapshot.error}');
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return Text('No specializations');
+                          } else {
+                            return Text('${trainer.sport} - ${snapshot.data!.join(', ')}');
+                          }
+                        },
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.info),
+                            color: Colors.red,
+                            onPressed: () {
+                              // Handle the information button click here
+                            },
+                          ),
+                          SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () {
+                              // Handle the order button click here
+                            },
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.blue,
+                              textStyle: TextStyle(color: Colors.white),
+                            ),
+                            child: Text('Request'),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 );
+
               },
             ),
           ),

@@ -32,7 +32,17 @@ class TrainerProfile extends Profile {
       logoUrl: data?['logoUrl'] ?? '',
       description: data?['description'] ?? '',
       sport: data?['sport'] ?? '',
-      specializations: (data?['specializations'] as List<dynamic>?)?.cast<String>() ?? [],
+      specializations: [],
     );
+  }
+
+  // fetches the trainer's specializations from the database using stream
+  Stream<List<String>> getSpecializations() {
+    return FirebaseFirestore.instance
+        .collection('profiles')
+        .doc(pid)
+        .collection('specializations')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc['name'] as String).toList());
   }
 }

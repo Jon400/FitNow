@@ -1,8 +1,9 @@
 // this class will contain the sport name and array of specializations
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 
-class Sport {
+class Sport extends ChangeNotifier {
   final String sid;
   final String name;
   final List<String> specializations;
@@ -22,4 +23,8 @@ class Sport {
       specializations: (data?['specializations'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
+
+  // getters for sport name and specializations
+  String get sportName => name;
+  List<String> get sportSpecializations => specializations;
 }
