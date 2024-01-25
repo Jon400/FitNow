@@ -235,7 +235,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                               primary: Colors.blue,
                               textStyle: TextStyle(color: Colors.white),
                             ),
-                            child: Text('Order'),
+                            child: Text('Request'),
                           ),
                         ],
                       ),
