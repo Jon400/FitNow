@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/app_user.dart';
+import '../../models/sport.dart';
 import '../../services/database.dart';
 import '../../models/trainer.dart'; // Assuming TrainerProfile is the correct model
 
@@ -32,16 +33,33 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
   late Future<List<TrainerProfile>> futureTrainers;
   late Stream<List<TrainerProfile>> streamTrainer;
   late AppUser user; // Declare user variable at the class level
+  late Stream<List<Sport>> streamSports;
 
   @override
   void initState() {
     super.initState();
     user = Provider.of<AppUser?>(context, listen: false)!; // Initialize user
     streamTrainer = Stream<List<TrainerProfile>>.empty(); // Initialize streamTrainer
+    streamSports = Stream<List<Sport>>.empty(); // Initialize streamSports
+    getSports(user);
     WidgetsBinding.instance?.addPostFrameCallback((_) {
       // Initialize futureTrainers here
       searchTrainers(user);
     });
+  }
+
+  Future<Stream<List<Sport>>> getSports(AppUser user) async{
+    // Initialize DatabaseService with user's UID
+    final DatabaseService databaseService = DatabaseService(
+      uid: user.uid,
+      roleView: 'trainee',
+    );
+    // Call the sports getter in DatabaseService
+    final sports = await databaseService.sports;
+    setState(() {
+      streamSports = sports;
+    });
+    return sports;
   }
 
   Future<Stream<List<TrainerProfile>>> searchTrainers(AppUser user) async {
@@ -49,9 +67,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
     final DatabaseService databaseService = DatabaseService(
       uid: user.uid,
       roleView: 'trainee',
-    );
-
-    // Call the search method in DatabaseService
+    ); // Call the search method in DatabaseService
     final trainers = await databaseService.searchTrainersStream(
       // combine start date and start tine into a single DateTime object
       startDate: startDate == null || startTime == null
@@ -101,20 +117,49 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
             trailing: Icon(Icons.calendar_today),
             onTap: pickEndDateTime,
           ),
-          DropdownButton<String>(
-            value: selectedSport,
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedSport = newValue!;
-                searchTrainers(user);
-              });
-            },
-            items: sports.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
+          StreamBuilder<List<Sport>>(
+            stream: streamSports,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return DropdownButton<String>(
+                  items: [],
+                  onChanged: null,
+                  hint: Text("Loading sports..."),
+                );
+              }
+              if (snapshot.hasError) {
+                return DropdownButton<String>(
+                  items: [],
+                  onChanged: null,
+                  hint: Text("Error: ${snapshot.error}"),
+                );
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return DropdownButton<String>(
+                  items: [],
+                  onChanged: null,
+                  hint: Text("No sports available"),
+                );
+              }
+              List<Sport> sportsList = snapshot.data!;
+              return DropdownButton<String>(
+                value: selectedSport,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedSport = newValue!;
+                    specs = sportsList.firstWhere((s) => s.name == selectedSport).specializations;
+                    selectedSpec = specs.isNotEmpty ? specs.first : 'DefaultSpecValue';
+                    searchTrainers(user);
+                  });
+                },
+                items: sportsList.map<DropdownMenuItem<String>>((Sport sport) {
+                  return DropdownMenuItem<String>(
+                    value: sport.name,
+                    child: Text(sport.name),
+                  );
+                }).toList(),
               );
-            }).toList(),
+            },
           ),
           DropdownButton<String>(
             value: selectedSpec,

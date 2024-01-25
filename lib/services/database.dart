@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fit_now/models/trainer.dart';
 
 import '../models/profile.dart';
+import '../models/sport.dart';
 import '../models/training_session.dart';
 import '../screens/search/search_training.dart';
 
@@ -21,6 +22,9 @@ class DatabaseService {
 
   final CollectionReference _trainingSessionCollection =
   FirebaseFirestore.instance.collection('training_sessions');
+
+  final CollectionReference _sportsCollection =
+  FirebaseFirestore.instance.collection('sports');
 
   Stream<Profile> get profile {
     return _profileCollection.doc(uid).snapshots().map(_profileFromSnapshot);
@@ -42,6 +46,20 @@ class DatabaseService {
     );
   }
 
+  Sport _sportsFromSnapshot(DocumentSnapshot snapshot) {
+    return Sport(
+      sid: snapshot.id,
+      name: (snapshot.data() as Map<String, dynamic>)?['name'],
+      specializations: (snapshot.data() as Map<String, dynamic>)?['specializations'],
+    );
+  }
+
+  List<Sport> _sportsFromQuerySnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      return Sport.fromFirestore(doc);
+    }).toList();
+  }
+
   Future<void> updateProfileName(String firstName, String lastName,
       String roleView) async {
     return await _profileCollection.doc(uid).set(
@@ -52,6 +70,19 @@ class DatabaseService {
       },
       SetOptions(merge: true),
     );
+  }
+
+  // Stream<List<Sport>> get allSports {
+  //   return _sportsCollection
+  //       .snapshots()
+  //       .map(_sportsFromQuerySnapshot);
+  // }
+
+
+  Stream<List<Sport>> get sports {
+    return _sportsCollection
+        .snapshots()
+        .map(_sportsFromQuerySnapshot);
   }
 
   Stream<List<TrainingSession>> get trainingSessions {
@@ -129,7 +160,7 @@ class DatabaseService {
         if (hasSpecialization) {
           // Query the availability subcollection for the current trainer
           QuerySnapshot availabilitySnapshot = await trainerDoc.reference
-              .collection('datesAvailibilty')
+              .collection('datesAvailability')
               .get();
 
           // Perform date filtering in Dart code
