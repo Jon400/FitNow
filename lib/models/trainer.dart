@@ -67,25 +67,45 @@ class TrainerProfile extends Profile {
     var bookedSessionsStream = FirebaseFirestore.instance
         .collection('training_sessions')
         .where('trainerId', isEqualTo: pid)
-        .where('endTime', isGreaterThanOrEqualTo: startDate) // Only one inequality filter
+        .where('endTime', isGreaterThanOrEqualTo: startDate)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
 
     return availabilityStream.asyncMap((List<TimeRange> availableTimeRanges) async {
       var bookedTimeRanges = await bookedSessionsStream.first;
 
-      // Filter out the time slots that are booked
-      var filteredAvailableTimeRanges = availableTimeRanges.where((availableTimeRange) {
-        return bookedTimeRanges.every((bookedTimeRange) {
-          return bookedTimeRange.endTime.isBefore(availableTimeRange.startTime) ||
-              bookedTimeRange.startTime.isAfter(availableTimeRange.endTime);
-        });
-      }).toList();
+      List<TimeRange> filteredAvailableTimeRanges = [];
+      for (var availableTimeRange in availableTimeRanges) {
+        var startTime = availableTimeRange.startTime;
+        var endTime = availableTimeRange.endTime;
+
+        for (var bookedTimeRange in bookedTimeRanges) {
+          if (bookedTimeRange.endTime.isBefore(availableTimeRange.startTime) ||
+              bookedTimeRange.startTime.isAfter(availableTimeRange.endTime)) {
+            // No overlap, add the entire available time range
+            filteredAvailableTimeRanges.add(availableTimeRange);
+          } else {
+            // Split the time range around the booked session
+            if (bookedTimeRange.startTime.isAfter(startTime) && bookedTimeRange.startTime.isBefore(endTime)) {
+              // Add time before the booked session
+              filteredAvailableTimeRanges.add(TimeRange(startTime: startTime, endTime: bookedTimeRange.startTime));
+            }
+            if (bookedTimeRange.endTime.isAfter(startTime) && bookedTimeRange.endTime.isBefore(endTime)) {
+              // Add time after the booked session
+              startTime = bookedTimeRange.endTime;
+            }
+          }
+        }
+
+        // Add remaining time slot after all booked sessions are accounted for
+        if (startTime.isBefore(endTime)) {
+          filteredAvailableTimeRanges.add(TimeRange(startTime: startTime, endTime: endTime));
+        }
+      }
 
       return filteredAvailableTimeRanges;
     });
   }
-
 }
 
 class TimeRange {

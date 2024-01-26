@@ -11,13 +11,16 @@ class RequestTrainingScreen extends StatefulWidget {
 class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   TrainerProfile? trainerProfile;
   List<TimeRange> availableTimeSlots = [];
+  List<String> specializations = [];
   DateTimeRange? selectedTimeRange;
+  String? selectedSpecialization;
 
   @override
   void initState() {
     super.initState();
     trainerProfile = Provider.of<TrainerProfile>(context, listen: false);
     fetchAvailableTimeSlots();
+    fetchSpecializations();
   }
 
   void fetchAvailableTimeSlots() async {
@@ -34,9 +37,20 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
     }
   }
 
+  void fetchSpecializations() {
+    trainerProfile!.getSpecializations().listen((fetchedSpecializations) {
+      setState(() {
+        specializations = fetchedSpecializations;
+      });
+    }, onError: (error) {
+      print('Error fetching specializations: $error');
+    });
+  }
+
   void onTimeSlotSelected(DateTimeRange range) {
     setState(() {
       selectedTimeRange = range;
+      selectedSpecialization = null; // Reset specialization selection
     });
   }
 
@@ -60,11 +74,15 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Training Time'),),
+        title: Text('Select Training Time'),
+      ),
       body: Column(
         children: [
-          // do ot bigger
-          Text('Select Training Session With ${trainerProfile!.firstName} ${trainerProfile!.lastName}', style: TextStyle(fontSize: 17),),
+          // Display the trainer's name
+          Text(
+            'Select Training Session With ${trainerProfile?.firstName ?? "N/A"} ${trainerProfile?.lastName ?? ""}',
+            style: TextStyle(fontSize: 17),
+          ),
           Expanded(
             child: SfCalendar(
               view: CalendarView.week,
@@ -75,6 +93,24 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
                   showCustomTimePickerDialog(appointment.startTime, appointment.endTime);
                 }
               },
+            ),
+          ),
+          if (selectedTimeRange != null) Padding(
+            padding: EdgeInsets.all(16.0),
+            child: DropdownButton<String>(
+              value: selectedSpecialization,
+              hint: Text("Select Specialization"),
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedSpecialization = newValue;
+                });
+              },
+              items: specializations.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
             ),
           ),
           Padding(
@@ -92,7 +128,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
           ElevatedButton(
             onPressed: () {
               if (selectedTimeRange != null) {
-                // Submit logic goes here
                 print('Selected Time Range: ${selectedTimeRange!.start.toLocal()} to ${selectedTimeRange!.end.toLocal()}');
               }
             },
@@ -106,15 +141,13 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
 
 class MeetingDataSource extends CalendarDataSource {
   MeetingDataSource(List<TimeRange> source) {
-    appointments = source.map((timeRange) {
-      return Appointment(
-        startTime: timeRange.startTime,
-        endTime: timeRange.endTime,
-        isAllDay: false,
-        subject: 'Available Slot',
-        color: Colors.green,
-      );
-    }).toList();
+    appointments = source.map((timeRange) => Appointment(
+      startTime: timeRange.startTime,
+      endTime: timeRange.endTime,
+      isAllDay: false,
+      subject: 'Available Slot',
+      color: Colors.green,
+    )).toList();
   }
 }
 
