@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import '../../models/trainer.dart';
+import '../../models/trainer.dart'; // Ensure this path is correct
 
 class RequestTrainingScreen extends StatefulWidget {
   @override
@@ -11,9 +11,7 @@ class RequestTrainingScreen extends StatefulWidget {
 class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   TrainerProfile? trainerProfile;
   List<TimeRange> availableTimeSlots = [];
-
-  DateTime? selectedStartTime;
-  DateTime? selectedEndTime;
+  DateTimeRange? selectedTimeRange;
 
   @override
   void initState() {
@@ -22,87 +20,83 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
     fetchAvailableTimeSlots();
   }
 
-  void fetchAvailableTimeSlots() {
+  void fetchAvailableTimeSlots() async {
     final now = DateTime.now();
     final end = now.add(Duration(days: 7));
-    trainerProfile!.getAvailableTimeSlots(now, end).listen((timeSlots) {
+
+    try {
+      List<TimeRange> timeSlots = (await trainerProfile!.getAvailableTimeSlots(now, end).first).cast<TimeRange>();
       setState(() {
         availableTimeSlots = timeSlots;
       });
+    } catch (error) {
+      print('Error fetching time slots: $error');
+    }
+  }
+
+  void onTimeSlotSelected(DateTimeRange range) {
+    setState(() {
+      selectedTimeRange = range;
     });
   }
 
-  void handleTimeRangeSelection(DateTime startTime, DateTime endTime) {
-    setState(() {
-      selectedStartTime = startTime;
-      selectedEndTime = endTime;
-    });
+  void showCustomTimePickerDialog(DateTime startTime, DateTime endTime) async {
+    final DateTimeRange? pickedRange = await showDialog<DateTimeRange>(
+      context: context,
+      builder: (context) => CustomTimePickerDialog(
+        availableTimeSlots: [TimeRange(startTime: startTime, endTime: endTime)],
+        initialTimeRange: selectedTimeRange,
+      ),
+    );
+
+    if (pickedRange != null) {
+      setState(() {
+        selectedTimeRange = pickedRange;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Training Time'),
-      ),
+        title: Text('Select Training Time'),),
       body: Column(
         children: [
+          // do ot bigger
+          Text('Select Training Session With ${trainerProfile!.firstName} ${trainerProfile!.lastName}', style: TextStyle(fontSize: 17),),
+          Expanded(
+            child: SfCalendar(
+              view: CalendarView.week,
+              dataSource: MeetingDataSource(availableTimeSlots),
+              onTap: (CalendarTapDetails details) {
+                if (details.targetElement == CalendarElement.appointment) {
+                  final Appointment appointment = details.appointments!.first;
+                  showCustomTimePickerDialog(appointment.startTime, appointment.endTime);
+                }
+              },
+            ),
+          ),
           Padding(
             padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Selected Time Range:',
+            child: selectedTimeRange != null
+                ? Text(
+              'Selected Time Range: ${selectedTimeRange!.start.toLocal()} to ${selectedTimeRange!.end.toLocal()}',
+              style: TextStyle(fontSize: 18),
+            )
+                : Text(
+              'No Time Range Selected',
               style: TextStyle(fontSize: 18),
             ),
           ),
-          if (selectedStartTime != null && selectedEndTime != null)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'Start Time: ${selectedStartTime!.toLocal()}',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          if (selectedStartTime != null && selectedEndTime != null)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'End Time: ${selectedEndTime!.toLocal()}',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          Expanded(
-            child: SfCalendar(
-              view: CalendarView.day,
-              appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.5),
-                    border: Border.all(color: Colors.blue),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Available Slot',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                );
-              },
-              onTap: (CalendarTapDetails details) {
-                if (details.targetElement == CalendarElement.appointment) {
-                  final startTime = details.appointments?[0].startTime;
-                  final endTime = details.appointments?[0].endTime;
-                  handleTimeRangeSelection(startTime, endTime);
-                }
-              },
-              onLongPress: (CalendarLongPressDetails details) {
-                if (details.targetElement == CalendarElement.appointment) {
-                  final startTime = details.appointments?[0].startTime;
-                  final endTime = startTime.add(Duration(minutes: 30));
-                  handleTimeRangeSelection(startTime, endTime);
-                }
-              },
-              dataSource: MeetingDataSource(availableTimeSlots),
-            ),
+          ElevatedButton(
+            onPressed: () {
+              if (selectedTimeRange != null) {
+                // Submit logic goes here
+                print('Selected Time Range: ${selectedTimeRange!.start.toLocal()} to ${selectedTimeRange!.end.toLocal()}');
+              }
+            },
+            child: Text('Submit'),
           ),
         ],
       ),
@@ -112,12 +106,93 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
 
 class MeetingDataSource extends CalendarDataSource {
   MeetingDataSource(List<TimeRange> source) {
-    appointments = source
-        .map((timeRange) => Appointment(
-      startTime: timeRange.startTime,
-      endTime: timeRange.endTime,
-      isAllDay: false,
-    ))
-        .toList();
+    appointments = source.map((timeRange) {
+      return Appointment(
+        startTime: timeRange.startTime,
+        endTime: timeRange.endTime,
+        isAllDay: false,
+        subject: 'Available Slot',
+        color: Colors.green,
+      );
+    }).toList();
+  }
+}
+
+class CustomTimePickerDialog extends StatefulWidget {
+  final List<TimeRange> availableTimeSlots;
+  final DateTimeRange? initialTimeRange;
+
+  CustomTimePickerDialog({Key? key, required this.availableTimeSlots, this.initialTimeRange}) : super(key: key);
+
+  @override
+  _CustomTimePickerDialogState createState() => _CustomTimePickerDialogState();
+}
+
+class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
+  DateTime? selectedStartTime;
+  DateTime? selectedEndTime;
+
+  Future<void> selectTime(DateTime initialDate, bool isStartTime) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initialDate),
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        DateTime selectedDate = isStartTime ? selectedStartTime ?? initialDate : selectedEndTime ?? initialDate;
+        DateTime updatedDateTime = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        if (isStartTime) {
+          selectedStartTime = updatedDateTime;
+        } else {
+          selectedEndTime = updatedDateTime;
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Select Time Range'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: widget.availableTimeSlots.map((timeSlot) {
+            return ListTile(
+              title: Text('${timeSlot.startTime} - ${timeSlot.endTime}'),
+              onTap: () {
+                setState(() {
+                  selectedStartTime = timeSlot.startTime;
+                  selectedEndTime = timeSlot.endTime;
+                });
+                selectTime(timeSlot.startTime, true).then((_) => selectTime(timeSlot.endTime, false));
+              },
+            );
+          }).toList(),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: Text('Cancel'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        TextButton(
+          child: Text('OK'),
+          onPressed: () {
+            if (selectedStartTime != null && selectedEndTime != null) {
+              Navigator.of(context).pop(DateTimeRange(start: selectedStartTime!, end: selectedEndTime!));
+            }
+          },
+        ),
+      ],
+    );
   }
 }

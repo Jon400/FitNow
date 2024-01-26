@@ -41,8 +41,8 @@ dependencies:
   shared_preferences: ^2.0.8
   provider: ^5.0.0
   cloud_functions: ^4.6.0
-  table_calendar: ^3.0.9
   syncfusion_flutter_calendar: ^24.1.47
+  #flutter_time_slot_picker: ^0.0.9
 
 
 dev_dependencies:
