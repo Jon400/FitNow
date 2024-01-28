@@ -24,7 +24,7 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   }
 
   void fetchAvailableTimeSlots() async {
-    final now = DateTime.now();
+    final now = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
     final end = now.add(Duration(days: 7));
 
     try {
@@ -44,13 +44,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
       });
     }, onError: (error) {
       print('Error fetching specializations: $error');
-    });
-  }
-
-  void onTimeSlotSelected(DateTimeRange range) {
-    setState(() {
-      selectedTimeRange = range;
-      selectedSpecialization = null; // Reset specialization selection
     });
   }
 
@@ -78,7 +71,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
       ),
       body: Column(
         children: [
-          // Display the trainer's name
           Text(
             'Select Training Session With ${trainerProfile?.firstName ?? "N/A"} ${trainerProfile?.lastName ?? ""}',
             style: TextStyle(fontSize: 17),
@@ -172,23 +164,67 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
     );
 
     if (pickedTime != null) {
-      setState(() {
-        DateTime selectedDate = isStartTime ? selectedStartTime ?? initialDate : selectedEndTime ?? initialDate;
-        DateTime updatedDateTime = DateTime(
-          selectedDate.year,
-          selectedDate.month,
-          selectedDate.day,
-          pickedTime.hour,
-          pickedTime.minute,
-        );
+      DateTime updatedDateTime = DateTime(
+        initialDate.year,
+        initialDate.month,
+        initialDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
 
-        if (isStartTime) {
-          selectedStartTime = updatedDateTime;
-        } else {
-          selectedEndTime = updatedDateTime;
-        }
-      });
+      if (isWithinAvailableSlot(updatedDateTime, isStartTime)) {
+        setState(() {
+          if (isStartTime) {
+            selectedStartTime = updatedDateTime;
+          } else {
+            selectedEndTime = updatedDateTime;
+          }
+        });
+      } else {
+        showInvalidTimeDialog();
+      }
     }
+  }
+
+  bool isWithinAvailableSlot(DateTime time, bool isStartTime) {
+    for (var slot in widget.availableTimeSlots) {
+      if (isStartTime) {
+        if (time.isAfter(slot.startTime) && time.isBefore(slot.endTime)) {
+          return true;
+        }
+      } else {
+        if (time.isAfter(selectedStartTime ?? DateTime.now()) && time.isBefore(slot.endTime)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  void showInvalidTimeDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Invalid Time"),
+          content: Text("Selected time is outside of available slots."),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                // clear the selected time
+                setState(() {
+                  selectedStartTime = null;
+                  selectedEndTime = null;
+                });
+                // Close the dialog
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -221,7 +257,7 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
           child: Text('OK'),
           onPressed: () {
             if (selectedStartTime != null && selectedEndTime != null) {
-              Navigator.of(context).pop(DateTimeRange(start: selectedStartTime!, end: selectedEndTime!));
+              Navigator.of(context). pop(DateTimeRange(start: selectedStartTime!, end: selectedEndTime!));
             }
           },
         ),
