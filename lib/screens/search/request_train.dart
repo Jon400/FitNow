@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import '../../models/app_user.dart';
 import '../../models/trainer.dart'; // Ensure this path is correct
+import '../../models/training_session.dart'; // Ensure this path is correct
 
 class RequestTrainingScreen extends StatefulWidget {
   @override
@@ -14,27 +16,16 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   List<String> specializations = [];
   DateTimeRange? selectedTimeRange;
   String? selectedSpecialization;
+  AppUser? currUser;
+  bool _isSubmitButtonEnabled = true;
 
   @override
   void initState() {
     super.initState();
     trainerProfile = Provider.of<TrainerProfile>(context, listen: false);
-    fetchAvailableTimeSlots();
+    currUser = Provider.of<AppUser>(context, listen: false)!;
+    _isSubmitButtonEnabled = true;
     fetchSpecializations();
-  }
-
-  void fetchAvailableTimeSlots() async {
-    final now = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
-    final end = now.add(Duration(days: 7));
-
-    try {
-      List<TimeRange> timeSlots = (await trainerProfile!.getAvailableTimeSlots(now, end).first).cast<TimeRange>();
-      setState(() {
-        availableTimeSlots = timeSlots;
-      });
-    } catch (error) {
-      print('Error fetching time slots: $error');
-    }
   }
 
   void fetchSpecializations() {
@@ -50,10 +41,14 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   void showCustomTimePickerDialog(DateTime startTime, DateTime endTime) async {
     final DateTimeRange? pickedRange = await showDialog<DateTimeRange>(
       context: context,
-      builder: (context) => CustomTimePickerDialog(
-        availableTimeSlots: [TimeRange(startTime: startTime, endTime: endTime)],
-        initialTimeRange: selectedTimeRange,
-      ),
+      builder: (context) =>
+          CustomTimePickerDialog(
+            key: UniqueKey(),
+            availableTimeSlots: [
+              TimeRange(startTime: startTime, endTime: endTime)
+            ],
+            initialTimeRange: selectedTimeRange,
+          ),
     );
 
     if (pickedRange != null) {
@@ -66,23 +61,39 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: UniqueKey(),
       appBar: AppBar(
         title: Text('Select Training Time'),
       ),
       body: Column(
         children: [
           Text(
-            'Select Training Session With ${trainerProfile?.firstName ?? "N/A"} ${trainerProfile?.lastName ?? ""}',
+            'Select Training Session With ${trainerProfile?.firstName ??
+                "N/A"} ${trainerProfile?.lastName ?? ""}',
             style: TextStyle(fontSize: 17),
           ),
           Expanded(
-            child: SfCalendar(
-              view: CalendarView.week,
-              dataSource: MeetingDataSource(availableTimeSlots),
-              onTap: (CalendarTapDetails details) {
-                if (details.targetElement == CalendarElement.appointment) {
-                  final Appointment appointment = details.appointments!.first;
-                  showCustomTimePickerDialog(appointment.startTime, appointment.endTime);
+            child: StreamBuilder<List<TimeRange>>(
+              key: UniqueKey(),
+              stream: trainerProfile!.getAvailableTimeSlots(DateTime.now().subtract(Duration(days: 7)), DateTime.now().add(Duration(days: 7))),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  List<TimeRange> availableTimeSlots = snapshot.data!;
+                  return SfCalendar(
+                    key: UniqueKey(),
+                    view: CalendarView.week,
+                    dataSource: MeetingDataSource(availableTimeSlots),
+                    onTap: (CalendarTapDetails details) {
+                      if (details.targetElement == CalendarElement.appointment) {
+                        final Appointment appointment = details.appointments!.first;
+                        showCustomTimePickerDialog(appointment.startTime, appointment.endTime);
+                      }
+                    },
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Error fetching time slots: ${snapshot.error}');
+                } else {
+                  return Center(child: CircularProgressIndicator());
                 }
               },
             ),
@@ -90,6 +101,7 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
           if (selectedTimeRange != null) Padding(
             padding: EdgeInsets.all(16.0),
             child: DropdownButton<String>(
+              key: UniqueKey(),
               value: selectedSpecialization,
               hint: Text("Select Specialization"),
               onChanged: (String? newValue) {
@@ -97,8 +109,10 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
                   selectedSpecialization = newValue;
                 });
               },
-              items: specializations.map<DropdownMenuItem<String>>((String value) {
+              items: specializations.map<DropdownMenuItem<String>>((
+                  String value) {
                 return DropdownMenuItem<String>(
+                  key: UniqueKey(),
                   value: value,
                   child: Text(value),
                 );
@@ -109,7 +123,8 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
             padding: EdgeInsets.all(16.0),
             child: selectedTimeRange != null
                 ? Text(
-              'Selected Time Range: ${selectedTimeRange!.start.toLocal()} to ${selectedTimeRange!.end.toLocal()}',
+              'Selected Time Range: ${selectedTimeRange!.start
+                  .toLocal()} to ${selectedTimeRange!.end.toLocal()}',
               style: TextStyle(fontSize: 18),
             )
                 : Text(
@@ -118,10 +133,61 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (selectedTimeRange != null) {
-                print('Selected Time Range: ${selectedTimeRange!.start.toLocal()} to ${selectedTimeRange!.end.toLocal()}');
+            onPressed: !_isSubmitButtonEnabled ? null : () async {
+              if (selectedTimeRange == null) {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      key: UniqueKey(),
+                      title: Text("Error"),
+                      content: Text("Please select a time range."),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('OK'),
+                          onPressed: () {
+                            // Close the dialog
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+                return;
               }
+              else if (selectedSpecialization == null) {
+                // show error dialog
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      key: UniqueKey(),
+                      title: Text("Error"),
+                      content: Text("Please select a specialization."),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('OK'),
+                          onPressed: () {
+                            // Close the dialog
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+                return;
+              }
+              if (selectedTimeRange != null) {
+                print('Selected Time Range: ${selectedTimeRange!.start
+                    .toLocal()} to ${selectedTimeRange!.end.toLocal()}');
+              }
+              if (selectedSpecialization != null) {
+                print('Selected Specialization: $selectedSpecialization');
+              }
+              // call a function to create the training session  void submitTrainingSession()
+              submitTrainingSession();
             },
             child: Text('Submit'),
           ),
@@ -129,7 +195,67 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
       ),
     );
   }
+
+
+  void submitTrainingSession() async {
+    if (!_isSubmitButtonEnabled) return; // Prevent multiple submissions
+
+    // Create a new training session
+    TrainingSession trainingSession = TrainingSession();
+
+    try {
+      await trainingSession.createTrainingSession(
+          trainerProfile!.pid,
+          currUser!.uid,
+          selectedTimeRange!.start,
+          selectedTimeRange!.end,
+          trainerProfile!.sport,
+          selectedSpecialization!
+      );
+
+      // On success, show success dialog and grey out the button
+      setState(() {
+        _isSubmitButtonEnabled = false; // Grey out the button
+      });
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            key: UniqueKey(),
+            title: Text("Success"),
+            content: Text("Request sent successfully."),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      // On failure, show error dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            key: UniqueKey(),
+            title: Text("Error"),
+            content: Text("Failed to send the request.\n" + e.toString()),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 }
+
 
 class MeetingDataSource extends CalendarDataSource {
   MeetingDataSource(List<TimeRange> source) {
@@ -206,6 +332,7 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          key: UniqueKey(),
           title: Text("Invalid Time"),
           content: Text("Selected time is outside of available slots."),
           actions: <Widget>[
@@ -230,6 +357,7 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      key: UniqueKey(),
       title: Text('Select Time Range'),
       content: SingleChildScrollView(
         child: Column(

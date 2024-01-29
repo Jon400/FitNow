@@ -61,7 +61,8 @@ class TrainerProfile extends Profile {
         .collection('datesAvailability')
         .where('endTime', isGreaterThanOrEqualTo: startDate)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
+        .map((snapshot) =>
+        snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
 
     // Fetch the booked time slots
     var bookedSessionsStream = FirebaseFirestore.instance
@@ -69,9 +70,11 @@ class TrainerProfile extends Profile {
         .where('trainerId', isEqualTo: pid)
         .where('endTime', isGreaterThanOrEqualTo: startDate)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
+        .map((snapshot) =>
+        snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
 
-    return availabilityStream.asyncMap((List<TimeRange> availableTimeRanges) async {
+    return availabilityStream.asyncMap((
+        List<TimeRange> availableTimeRanges) async {
       var bookedTimeRanges = await bookedSessionsStream.first;
 
       List<TimeRange> filteredAvailableTimeRanges = [];
@@ -86,11 +89,14 @@ class TrainerProfile extends Profile {
             filteredAvailableTimeRanges.add(availableTimeRange);
           } else {
             // Split the time range around the booked session
-            if (bookedTimeRange.startTime.isAfter(startTime) && bookedTimeRange.startTime.isBefore(endTime)) {
+            if (bookedTimeRange.startTime.isAfter(startTime) &&
+                bookedTimeRange.startTime.isBefore(endTime)) {
               // Add time before the booked session
-              filteredAvailableTimeRanges.add(TimeRange(startTime: startTime, endTime: bookedTimeRange.startTime));
+              filteredAvailableTimeRanges.add(TimeRange(
+                  startTime: startTime, endTime: bookedTimeRange.startTime));
             }
-            if (bookedTimeRange.endTime.isAfter(startTime) && bookedTimeRange.endTime.isBefore(endTime)) {
+            if (bookedTimeRange.endTime.isAfter(startTime) &&
+                bookedTimeRange.endTime.isBefore(endTime)) {
               // Add time after the booked session
               startTime = bookedTimeRange.endTime;
             }
@@ -99,7 +105,8 @@ class TrainerProfile extends Profile {
 
         // Add remaining time slot after all booked sessions are accounted for
         if (startTime.isBefore(endTime)) {
-          filteredAvailableTimeRanges.add(TimeRange(startTime: startTime, endTime: endTime));
+          filteredAvailableTimeRanges.add(
+              TimeRange(startTime: startTime, endTime: endTime));
         }
       }
 

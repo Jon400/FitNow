@@ -233,8 +233,16 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                               // Navigate to the RequestTrainingScreen and pass the trainer data
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => ChangeNotifierProvider<TrainerProfile>.value(
-                                    value: trainer, // Assuming 'trainer' is a TrainerProfile instance
+                                  builder: (context) => MultiProvider(
+                                    providers: [
+                                      ChangeNotifierProvider<TrainerProfile>.value(
+                                        value: trainer, // Provided TrainerProfile
+                                      ),
+                                      ChangeNotifierProvider<AppUser>.value(
+                                        value: user,
+                                      ),
+                                      // You can add more providers if needed
+                                    ],
                                     child: RequestTrainingScreen(),
                                   ),
                                 ),

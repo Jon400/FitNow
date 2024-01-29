@@ -23,6 +23,7 @@ class _PreLauncherState extends State<PreLauncher> {
   @override
   void initState() {
     super.initState();
+    WidgetsFlutterBinding.ensureInitialized();
     if (kIsWeb) {
       _initialization = Firebase.initializeApp(
         options: const FirebaseOptions(
