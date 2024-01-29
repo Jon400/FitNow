@@ -9,4 +9,6 @@ class AppUser with ChangeNotifier {
     required this.uid,
     required this.emailVerified,
   });
+
+
 }

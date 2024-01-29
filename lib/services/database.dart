@@ -39,7 +39,6 @@ class DatabaseService {
   Profile _profileFromSnapshot(DocumentSnapshot snapshot) {
     return Profile(
       pid: uid,
-      email: (snapshot.data() as Map<String, dynamic>)?['email'],
       roleView: (snapshot.data() as Map<String, dynamic>)?['roleView'],
       firstName: (snapshot.data() as Map<String, dynamic>)?['firstName'],
       lastName: (snapshot.data() as Map<String, dynamic>)?['lastName'],

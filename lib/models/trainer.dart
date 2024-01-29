@@ -10,7 +10,6 @@ class TrainerProfile extends Profile {
 
   TrainerProfile({
     required super.pid,
-    required super.email,
     required super.roleView,
     required super.firstName,
     required super.lastName,
@@ -25,7 +24,6 @@ class TrainerProfile extends Profile {
 
     return TrainerProfile(
       pid: doc.id,
-      email: data?['email'] ?? '',
       roleView: data?['roleView'] ?? '',
       firstName: data?['firstName'] ?? 'Guest',
       lastName: data?['lastName'] ?? '',
