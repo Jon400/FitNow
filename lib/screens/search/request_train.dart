@@ -201,7 +201,16 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
     if (!_isSubmitButtonEnabled) return; // Prevent multiple submissions
 
     // Create a new training session
-    TrainingSession trainingSession = TrainingSession();
+    TrainingSession trainingSession = TrainingSession(
+      tid: '',
+      startTime: selectedTimeRange!.start,
+      endTime: selectedTimeRange!.end,
+      sport: trainerProfile!.sport,
+      spec: selectedSpecialization!,
+      traineeId: currUser!.uid,
+      trainerId: trainerProfile!.pid,
+      status: 'pending',
+    );
 
     try {
       await trainingSession.createTrainingSession(

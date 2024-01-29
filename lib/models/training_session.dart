@@ -2,24 +2,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class TrainingSession {
-  final String? tid;
-  final DateTime? startTime;
-  final DateTime? endTime;
-  final String? sport;
-  final String? spec;
-  final String? traineeId;
-  final String? trainerId;
-  final String? status;
+  final String tid;
+  final DateTime startTime;
+  final DateTime endTime;
+  final String sport;
+  final String spec;
+  final String traineeId;
+  final String trainerId;
+  final String status;
 
   TrainingSession({
-    this.tid,
-    this.startTime,
-    this.endTime,
-    this.sport,
-    this.spec,
-    this.traineeId,
-    this.trainerId,
-    this.status,
+    required this.tid,
+    required this.startTime,
+    required this.endTime,
+    required this.sport,
+    required this.spec,
+    required this.traineeId,
+    required this.trainerId,
+    required this.status,
   });
 
   factory TrainingSession.fromFirestore(DocumentSnapshot doc) {
