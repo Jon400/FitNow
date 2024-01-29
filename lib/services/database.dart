@@ -72,6 +72,22 @@ class DatabaseService {
     );
   }
 
+  //for the trainer planning : only the approved requests
+  Future<List<TrainingSession>> getApprovedTrainingSessions(String trainerId) async {
+    final QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('training_sessions')
+        .where('trainerId', isEqualTo: trainerId)
+        .where('status', isEqualTo: 'approved')
+        .get();
+
+    List<TrainingSession> sessions = snapshot.docs
+        .map((doc) => TrainingSession.fromFirestore(doc))
+        .toList();
+
+    return sessions;
+  }
+
+
   // Stream<List<Sport>> get allSports {
   //   return _sportsCollection
   //       .snapshots()
