@@ -3,7 +3,7 @@ import 'package:fit_now/screens/profiles/trainer_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import '../../models/training_session2.dart';
+import '../../models/training_session.dart';
 import '../account/index.dart';
 
 
@@ -49,17 +49,17 @@ class _request_button extends State<request_button> {
               return Card( // Utilisation d'un Card pour une meilleure présentation
                 child: ListTile(
                   title: Text('${trainingSession.sport} - ${trainingSession.spec}'),
-                  subtitle: Text('Status: ${trainingSession.status} - Start: ${trainingSession.startTime.toDate()} - End: ${trainingSession.endTime.toDate()}'),
+                  subtitle: Text('Status: ${trainingSession.status} - Start: ${trainingSession.startTime} - End: ${trainingSession.endTime}'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: Icon(Icons.check_circle, color: Colors.green),
-                        onPressed: () => _approveRequest(trainingSession.sessionId, context),
+                        onPressed: () => _approveRequest(trainingSession.tid, context),
                       ),
                       IconButton(
                         icon: Icon(Icons.cancel, color: Colors.red),
-                        onPressed: () => _cancelRequest(trainingSession.sessionId, context),
+                        onPressed: () => _cancelRequest(trainingSession.tid, context),
                       ),
                     ],
                   ),
