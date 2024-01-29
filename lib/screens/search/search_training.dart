@@ -1,3 +1,4 @@
+import 'package:fit_now/screens/search/request_train.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/app_user.dart';
@@ -229,7 +230,23 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                           SizedBox(width: 8),
                           ElevatedButton(
                             onPressed: () {
-                              // Handle the order button click here
+                              // Navigate to the RequestTrainingScreen and pass the trainer data
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => MultiProvider(
+                                    providers: [
+                                      ChangeNotifierProvider<TrainerProfile>.value(
+                                        value: trainer, // Provided TrainerProfile
+                                      ),
+                                      ChangeNotifierProvider<AppUser>.value(
+                                        value: user,
+                                      ),
+                                      // You can add more providers if needed
+                                    ],
+                                    child: RequestTrainingScreen(),
+                                  ),
+                                ),
+                              );
                             },
                             style: ElevatedButton.styleFrom(
                               primary: Colors.blue,
