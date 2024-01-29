@@ -1,29 +1,38 @@
+// training_session.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 
 class TrainingSession {
-  final String? tid;
-  final DateTime? startTime;
-  final DateTime? endTime;
-  final String? sport;
-  final String? spec;
+  final String tid;
+  final DateTime endTime;
+  final String spec;
+  final String sport;
+  final DateTime startTime;
+  final String status;
+  final String traineeId;
+  final String trainerId;
+
   TrainingSession({
-    this.tid,
-    this.startTime,
-    this.endTime,
-    this.sport,
-    this.spec,
+    required this.tid,
+    required this.endTime,
+    required this.spec,
+    required this.sport,
+    required this.startTime,
+    required this.status,
+    required this.traineeId,
+    required this.trainerId,
   });
 
-  factory TrainingSession.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-
+  factory TrainingSession.fromFirestore(DocumentSnapshot document) {
+    final data = document.data() as Map<String, dynamic>;
     return TrainingSession(
-      tid: doc.id,
+      tid: document.id,
       startTime: data?['startTime'].toDate(),
       endTime: data?['endTime'].toDate(),
-      sport: data?['sport'],
-      spec: data?['spec'],
+      spec: data['spec'] ?? '',
+      sport: data['sport'] ?? '',
+      status: data['status'] ?? '',
+      traineeId: data['traineeId'] ?? '',
+      trainerId: data['trainerId'] ?? '',
     );
   }
 }

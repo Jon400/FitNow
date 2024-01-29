@@ -3,10 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TrainingSession {
   final String sessionId;
-  final Timestamp endTime;
+  final DateTime endTime;
   final String spec;
   final String sport;
-  final Timestamp startTime;
+  final DateTime startTime;
   final String status;
   final String traineeId;
   final String trainerId;
@@ -26,10 +26,10 @@ class TrainingSession {
     final data = document.data() as Map<String, dynamic>;
     return TrainingSession(
       sessionId: document.id,
-      endTime: data['endTime'] as Timestamp,
+      startTime: data?['startTime'].toDate(),
+      endTime: data?['endTime'].toDate(),
       spec: data['spec'] ?? '',
       sport: data['sport'] ?? '',
-      startTime: data['startTime'] as Timestamp,
       status: data['status'] ?? '',
       traineeId: data['traineeId'] ?? '',
       trainerId: data['trainerId'] ?? '',
