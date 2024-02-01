@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import '../../models/sport.dart';
 import '../../models/trainer.dart';
 import '../../services/database.dart';
-import '../../models/sport.dart'; // Assuming this is the correct path for the Sport class
 
 class TrainerProfileScreen extends StatefulWidget {
   @override
@@ -74,7 +76,6 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
             _descriptionController.text = trainerData.description;
             _logoUrlController.text = trainerData.logoUrl;
             selectedSport = trainerData.sport;
-            selectedSpecs = trainerData.specializations;
 
             return SingleChildScrollView(
               child: Center(
@@ -89,24 +90,15 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                     Text('First Name: ${trainerData.firstName}', style: TextStyle(fontSize: 16)),
                     Text('Last Name: ${trainerData.lastName}', style: TextStyle(fontSize: 16)),
                     Text('Sport: ${trainerData.sport}', style: TextStyle(fontSize: 16)),
-                    Text('Specializations: ${selectedSpecs.join(", ")}', style: TextStyle(fontSize: 16)),
+                    buildSpecializationSection(trainerData), // Specialization section
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text('Description: ${trainerData.description}', style: TextStyle(fontSize: 16), textAlign: TextAlign.center),
                     ),
                     SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {}, // Placeholder for navigation
-                      child: Text("Planning"),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {}, // Placeholder for navigation
-                      child: Text("Requests"),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {}, // Placeholder for navigation
-                      child: Text("Activity Time"),
-                    ),
+                    ElevatedButton(onPressed: () {}, child: Text("Planning")),
+                    ElevatedButton(onPressed: () {}, child: Text("Requests")),
+                    ElevatedButton(onPressed: () {}, child: Text("Activity Time")),
                   ],
                 ),
               ),
@@ -116,6 +108,18 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
           }
         },
       ),
+    );
+  }
+
+  Widget buildSpecializationSection(TrainerProfile trainerData) {
+    return StreamBuilder<List<String>>(
+      stream: trainerData.getSpecializations(),
+      builder: (context, specSnapshot) {
+        if (specSnapshot.hasData) {
+          selectedSpecs = specSnapshot.data!;
+        }
+        return Text('Specializations: ${selectedSpecs.join(", ")}', style: TextStyle(fontSize: 16));
+      },
     );
   }
 
@@ -151,7 +155,8 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                       onChanged: (newValue) {
                         setState(() {
                           selectedSport = newValue!;
-                          selectedSpecs = specializationsBySport[selectedSport] ?? [];
+                          specializationsBySport[selectedSport] ?? [];
+
                         });
                       },
                       items: specializationsBySport.keys.map((String value) {
