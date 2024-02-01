@@ -211,5 +211,46 @@ class DatabaseService {
 
     return controller.stream;
   }
+
+  // get TrainerProfile from trainerId
+  Stream<TrainerProfile> getTrainerProfile() {
+    return _profileCollection.doc(uid).snapshots().map((doc) {
+      return TrainerProfile.fromFirestore(doc);
+    });
+  }
+
+  Future<void> updateTrainerProfile(
+      String firstName,
+      String lastName,
+      String description,
+      String logoUrl,
+      String sport,
+      List<String> specializations,
+      ) async {
+    // Update the profile document
+    await _profileCollection.doc(uid).set(
+      {
+        'firstName': firstName,
+        'lastName': lastName,
+        'roleView': 'trainer',
+        'logo_url': logoUrl,
+        'description': description,
+        'sport': sport,
+      },
+      SetOptions(merge: true),
+    );
+
+    // Update the specializations subcollection
+    await _profileCollection.doc(uid).collection('specializations').get().then(
+          (snapshot) => snapshot.docs.forEach((doc) => doc.reference.delete()),
+    );
+    for (var specialization in specializations) {
+      await _profileCollection.doc(uid).collection('specializations').add(
+        {
+          'name': specialization,
+        },
+      );
+    }
+  }
 }
 

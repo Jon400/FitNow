@@ -27,7 +27,7 @@ class TrainerProfile extends Profile {
       roleView: data?['roleView'] ?? '',
       firstName: data?['firstName'] ?? 'Guest',
       lastName: data?['lastName'] ?? '',
-      logoUrl: data?['logoUrl'] ?? '',
+      logoUrl: data?['logo_url'] ?? '',
       description: data?['description'] ?? '',
       sport: data?['sport'] ?? '',
       specializations: [],
