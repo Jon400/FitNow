@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import '../trainer_button/ActivityTime_button.dart';
+import '../trainer_button/request_button.dart';
+import '../trainer_button/planning_button.dart';
 import '../../models/sport.dart';
 import '../../models/trainer.dart';
 import '../../services/database.dart';
@@ -96,9 +98,27 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                       child: Text('Description: ${trainerData.description}', style: TextStyle(fontSize: 16), textAlign: TextAlign.center),
                     ),
                     SizedBox(height: 20),
-                    ElevatedButton(onPressed: () {}, child: Text("Planning")),
-                    ElevatedButton(onPressed: () {}, child: Text("Requests")),
-                    ElevatedButton(onPressed: () {}, child: Text("Activity Time")),
+                    ElevatedButton(onPressed: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(pageBuilder: (_, __, ___) => planning_button()),
+                      );
+                    },
+                        child: Text("Planning")),
+                    ElevatedButton(onPressed: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(pageBuilder: (_, __, ___) => request_button()),
+                      );
+                    },
+                        child: Text("Requests")),
+                    ElevatedButton(onPressed: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(pageBuilder: (_, __, ___) => ActivityTime_button()),
+                      );
+                    },
+                        child: Text("Activity Time")),
                   ],
                 ),
               ),
@@ -151,12 +171,11 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                       decoration: InputDecoration(labelText: 'Logo URL'),
                     ),
                     DropdownButtonFormField<String>(
-                      value: selectedSport,
+                      value: selectedSport != null && specializationsBySport.containsKey(selectedSport) ? selectedSport : null,
                       onChanged: (newValue) {
                         setState(() {
                           selectedSport = newValue!;
-                          specializationsBySport[selectedSport] ?? [];
-
+                          selectedSpecs = specializationsBySport[selectedSport!] ?? [];
                         });
                       },
                       items: specializationsBySport.keys.map((String value) {
@@ -190,6 +209,28 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
             TextButton(
               child: Text('Save'),
               onPressed: () {
+                // Check if a sport is selected
+                if (selectedSport == null || selectedSport!.isEmpty) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Validation Error'),
+                        content: Text('Please select a sport.'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text('OK'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  return; // Don't proceed with saving
+                }
+
                 updateTrainerProfile(userId);
                 Navigator.of(context).pop();
               },
@@ -199,6 +240,7 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
       },
     );
   }
+
 
   Future<void> updateTrainerProfile(String userId) async {
     await DatabaseService(uid: userId, roleView: '').updateTrainerProfile(
