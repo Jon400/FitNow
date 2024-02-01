@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import '../trainer_button/ActivityTime_button.dart';
-import '../trainer_button/request_button.dart';
-import '../trainer_button/planning_button.dart';
-
 import '../../models/trainer.dart';
 import '../../services/database.dart';
 
@@ -19,7 +15,7 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? selectedSport;
   List<String> specs = [];
-  String? selectedSpec;
+  List<String> selectedSpecs = [];
   TextEditingController _firstNameController = TextEditingController();
   TextEditingController _lastNameController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
@@ -28,7 +24,6 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with empty strings or default values
     _firstNameController.text = '';
     _lastNameController.text = '';
     _descriptionController.text = '';
@@ -54,7 +49,6 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             TrainerProfile trainerData = snapshot.data!;
-            // Only update controllers if the data has changed
             if (_firstNameController.text != trainerData.firstName) {
               _firstNameController.text = trainerData.firstName;
             }
@@ -68,9 +62,9 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
               _logoUrlController.text = trainerData.logoUrl;
             }
             selectedSport = trainerData.sport;
-            // Assuming specializations is a List<String>
             specs = trainerData.specializations;
-            selectedSpec = specs.isNotEmpty ? specs.first : null;
+            selectedSpecs = trainerData.specializations;
+
             return SingleChildScrollView(
               child: Center(
                 child: Column(
@@ -84,32 +78,22 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                     Text('First Name: ${trainerData.firstName}', style: TextStyle(fontSize: 16)),
                     Text('Last Name: ${trainerData.lastName}', style: TextStyle(fontSize: 16)),
                     Text('Sport: ${trainerData.sport}', style: TextStyle(fontSize: 16)),
-                    Text('Specialisation: ${trainerData.specializations.join(", ")}', style: TextStyle(fontSize: 16)),
+                    Text('Specializations: ${selectedSpecs.join(", ")}', style: TextStyle(fontSize: 16)),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text('Description: ${trainerData.description}', style: TextStyle(fontSize: 16), textAlign: TextAlign.center),
                     ),
                     SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () { Navigator.push(
-                        context,
-                        PageRouteBuilder(pageBuilder: (_, __, ___) => planning_button()),
-                      );}, // Placeholder for navigation to Planning
+                      onPressed: () {}, // Placeholder for navigation to Planning
                       child: Text("Planning"),
                     ),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                        context,
-                        PageRouteBuilder(pageBuilder: (_, __, ___) => request_button()),
-                      );}, // Placeholder for navigation to Requests
+                      onPressed: () {}, // Placeholder for navigation to Requests
                       child: Text("Requests"),
                     ),
                     ElevatedButton(
-                      onPressed: () {Navigator.push(
-                        context,
-                        PageRouteBuilder(pageBuilder: (_, __, ___) => ActivityTime_button()),
-                      );}, // Placeholder for navigation to Activity Time
+                      onPressed: () {}, // Placeholder for navigation to Activity Time
                       child: Text("Activity Time"),
                     ),
                   ],
@@ -149,6 +133,76 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                   controller: _logoUrlController,
                   decoration: InputDecoration(labelText: 'Logo URL'),
                 ),
+                StreamBuilder<QuerySnapshot>(
+                  stream: _firestore.collection('sports').snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      List<DropdownMenuItem> sportItems = [];
+                      for (var doc in snapshot.data!.docs) {
+                        var sport = doc.data() as Map<String, dynamic>;
+                        sportItems.add(
+                          DropdownMenuItem(
+                            child: Text(sport['name']),
+                            value: sport['name'],
+                          ),
+                        );
+                      }
+                      return DropdownButton(
+                        items: sportItems,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedSport = value.toString();
+                            selectedSpecs.clear();
+                            // Retrieve and set previously selected specializations here
+                            selectedSpecs.addAll(specs);
+                          });
+                        },
+                        value: selectedSport,
+                        hint: Text('Select a sport'),
+                      );
+                    } else {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                  },
+                ),
+                StreamBuilder<QuerySnapshot>(
+                  stream: _firestore.collection('sports').where('name', isEqualTo: selectedSport).snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      List<DropdownMenuItem> specItems = [];
+                      for (var doc in snapshot.data!.docs) {
+                        var sport = doc.data() as Map<String, dynamic>;
+                        var specializations = sport['specializations'] as List<dynamic>;
+                        for (var spec in specializations) {
+                          specItems.add(
+                            DropdownMenuItem(
+                              child: Text(spec),
+                              value: spec,
+                            ),
+                          );
+                        }
+                      }
+                      return Column(
+                        children: [
+                          DropdownButton(
+                            items: specItems,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedSpecs.add(value.toString());
+                              });
+                            },
+
+                            hint: Text('Select a specialization'),
+                          ),
+                          // Display the selected specializations
+                          Text('Selected Specializations: ${selectedSpecs.join(", ")}'),
+                        ],
+                      );
+                    } else {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                  },
+                ),
               ],
             ),
           ),
@@ -172,22 +226,20 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
     );
   }
 
+
   Future<void> updateTrainerProfile(String userId) async {
-    List<String> specializations = selectedSpec != null ? [selectedSpec!] : [];
-    // Update the profile document using updateTrainerProfile in DatabaseService.dart
     await DatabaseService(uid: userId, roleView: '').updateTrainerProfile(
       _firstNameController.text,
       _lastNameController.text,
       _descriptionController.text,
       _logoUrlController.text,
       selectedSport!,
-      specializations,
+      selectedSpecs,
     );
   }
 
   @override
   void dispose() {
-    // Dispose of controllers to prevent memory leaks
     _firstNameController.dispose();
     _lastNameController.dispose();
     _descriptionController.dispose();
