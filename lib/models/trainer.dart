@@ -19,6 +19,8 @@ class TrainerProfile extends Profile {
     required this.specializations,
   });
 
+
+
   factory TrainerProfile.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>?;
 

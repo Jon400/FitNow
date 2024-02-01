@@ -10,8 +10,7 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  TimeOfDay _startWorkingTime = TimeOfDay(hour: 8, minute: 0);
-  int _hoursOfWork = 8;
+  List<Map<String, TimeOfDay>> _workingTimes = [];
 
   @override
   Widget build(BuildContext context) {
@@ -42,12 +41,10 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
       context,
       MaterialPageRoute(
         builder: (context) => CalendarScreen(
-          startWorkingTime: _startWorkingTime,
-          hoursOfWork: _hoursOfWork,
-          onHoursSelected: (startWorkingTime, hoursOfWork) {
+          workingTimes: List.from(_workingTimes),
+          onTimeRangesSelected: (workingTimes) {
             setState(() {
-              _startWorkingTime = startWorkingTime;
-              _hoursOfWork = hoursOfWork;
+              _workingTimes = List.from(workingTimes);
             });
           },
         ),
@@ -57,14 +54,12 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
 }
 
 class CalendarScreen extends StatefulWidget {
-  final TimeOfDay startWorkingTime;
-  final int hoursOfWork;
-  final Function(TimeOfDay, int) onHoursSelected;
+  final List<Map<String, TimeOfDay>> workingTimes;
+  final Function(List<Map<String, TimeOfDay>>) onTimeRangesSelected;
 
   CalendarScreen({
-    required this.startWorkingTime,
-    required this.hoursOfWork,
-    required this.onHoursSelected,
+    required this.workingTimes,
+    required this.onTimeRangesSelected,
   });
 
   @override
@@ -75,6 +70,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  List<Map<String, TimeOfDay>> _workingTimes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _workingTimes = List.from(widget.workingTimes);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,36 +109,44 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
-                  Text('Start Working Time:'),
-                  ListTile(
-                    title: Text(
-                      _getTimeOfDayString(widget.startWorkingTime),
+                  Text('Working Times:'),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _workingTimes.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(
+                            '${_getTimeOfDayString(_workingTimes[index]['start']!)} - ${_getTimeOfDayString(_workingTimes[index]['end']!)}',
+                          ),
+                          onTap: () {
+                            _showTimeRangePicker(
+                              _workingTimes[index]['start']!,
+                              _workingTimes[index]['end']!,
+                                  (start, end) {
+                                setState(() {
+                                  _workingTimes[index]['start'] = start;
+                                  _workingTimes[index]['end'] = end;
+                                  widget.onTimeRangesSelected(_workingTimes);
+                                });
+                              },
+                            );
+                          },
+                        );
+                      },
                     ),
-                    onTap: () {
-                      _showTimePicker(widget.startWorkingTime, (selectedTime) {
-                        setState(() {
-                          widget.onHoursSelected(selectedTime, widget.hoursOfWork);
-                        });
-                      });
-                    },
                   ),
-                  SizedBox(height: 10),
-                  Text('Hours of Work:'),
-                  ListTile(
-                    title: Text('${widget.hoursOfWork} hours'),
-                    onTap: () {
-                      _showHoursPicker(widget.hoursOfWork, (selectedHours) {
-                        setState(() {
-                          widget.onHoursSelected(widget.startWorkingTime, selectedHours);
-                        });
-                      });
+                  ElevatedButton(
+                    onPressed: () {
+                      _addTimeRange();
                     },
+                    child: Text("Add Time Range"),
                   ),
                 ],
               ),
             ),
           ElevatedButton(
             onPressed: () {
+              widget.onTimeRangesSelected(_workingTimes);
               Navigator.pop(context); // Close the current screen
             },
             child: Text("Save Availability"),
@@ -150,36 +160,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return '${timeOfDay.hour}:${timeOfDay.minute.toString().padLeft(2, '0')}';
   }
 
-  Future<void> _showTimePicker(TimeOfDay initialTime, Function(TimeOfDay) onTimeSelected) async {
-    TimeOfDay? selectedTime = await showTimePicker(
+  Future<void> _showTimeRangePicker(
+      TimeOfDay initialStart,
+      TimeOfDay initialEnd,
+      Function(TimeOfDay, TimeOfDay) onTimeRangeSelected,
+      ) async {
+    TimeOfDay? start = await showTimePicker(
       context: context,
-      initialTime: initialTime,
+      initialTime: initialStart,
     );
 
-    if (selectedTime != null) {
-      onTimeSelected(selectedTime);
+    if (start != null) {
+      TimeOfDay? end = await showTimePicker(
+        context: context,
+        initialTime: initialEnd,
+      );
+
+      if (end != null) {
+        onTimeRangeSelected(start, end);
+      }
     }
   }
 
-  Future<void> _showHoursPicker(int initialHours, Function(int) onHoursSelected) async {
-    int? selectedHours = await showDialog<int>(
-      context: context,
-      builder: (BuildContext context) {
-        return SimpleDialog(
-          title: Text('Select Hours of Work'),
-          children: List.generate(
-            12,
-                (index) => SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, (index + 1) * 2), // Increment by 2 hours each option
-              child: Text('${(index + 1) * 2} hours'),
-            ),
-          ),
-        );
+  void _addTimeRange() {
+    _showTimeRangePicker(
+      TimeOfDay(hour: 8, minute: 0),
+      TimeOfDay(hour: 10, minute: 0),
+          (start, end) {
+        setState(() {
+          _workingTimes.add({'start': start, 'end': end});
+        });
       },
     );
-
-    if (selectedHours != null) {
-      onHoursSelected(selectedHours);
-    }
   }
 }
