@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fit_now/models/request.dart';
 import 'package:flutter/material.dart';
 
 class TrainingSession {
@@ -37,12 +38,7 @@ class TrainingSession {
     );
   }
 
-  // this function will create a new training session in the database but tid will be chosen by the database
-  // the status will be pending
-  // the traineeId and trainerId will be the id of the trainee and trainer who are logged in
-
-
-  Future<void> createTrainingSession(String trainerId, String traineeId, DateTime startTime, DateTime endTime, String sport, String spec) async {
+  Future<TrainingSession?> createTrainingSession(String trainerId, String traineeId, DateTime startTime, DateTime endTime, String sport, String spec) async {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     // First query: Find sessions that end after the desired start time and are either approved or pending
@@ -66,8 +62,9 @@ class TrainingSession {
       // Handle the situation when the trainer is already booked
       throw Exception('The trainer is already booked');
     } else {
+      DocumentReference sessionDocRef = await firestore.collection('training_sessions').doc();
       // If no overlapping session, create the new session
-      await firestore.collection('training_sessions').doc().set({
+      await sessionDocRef.set({
         'startTime': startTime,
         'endTime': endTime,
         'sport': sport,
@@ -76,6 +73,41 @@ class TrainingSession {
         'trainerId': trainerId,
         'status': 'pending',
       });
+      // save it to the request collection under the current session id
+      await sessionDocRef.collection('requests').doc().set({
+        'status': 'pending',
+        'timestamp': DateTime.now(),
+      });
+      return TrainingSession(
+        tid: sessionDocRef.id,
+        startTime: startTime,
+        endTime: endTime,
+        sport: sport,
+        spec: spec,
+        traineeId: traineeId,
+        trainerId: trainerId,
+        status: 'pending',
+      );
     }
+  }
+
+  // this function will stream out all requests that are associated with the training session
+  // the requests will be streamed out in a list of request objects
+  Stream<List<Request>> streamRequests() {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    return firestore
+        .collection('requests')
+        .where('sessionId', isEqualTo: tid)
+        .snapshots()
+        .map((QuerySnapshot query) {
+      List<Request> retVal = [];
+
+      query.docs.forEach((element) {
+        retVal.add(Request.fromFirestore(element));
+      });
+
+      return retVal;
+    });
   }
 }
