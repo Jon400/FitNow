@@ -52,7 +52,7 @@ class TrainerProfileScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                         context,
-                        PageRouteBuilder(pageBuilder: (_, __, ___) => ActivityTime_button()
+                        PageRouteBuilder(pageBuilder: (_, __, ___) => ActivityTimeButton()
                         )
                     );
                   },
