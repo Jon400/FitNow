@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/trainer.dart';
+import '../models/trainer.dart'; // Ensure this path matches your project structure
 
 class SearchTrainers {
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   Stream<List<TrainerProfile>> searchTrainersStream({
     DateTime? startDate,
@@ -16,16 +16,18 @@ class SearchTrainers {
       query = query.where('sport', isEqualTo: sport);
     }
 
+    // Fetch all trainers matching the initial criteria
     final querySnapshot = await query.get();
     List<TrainerProfile> matchingTrainers = [];
 
+    // Iterate through each trainer document
     for (var trainerDoc in querySnapshot.docs) {
       final hasSpecialization = await checkSpecialization(trainerDoc, specialization);
-      final isAvailable = await checkAvailability(trainerDoc, startDate, endDate);
-
-      if (hasSpecialization && isAvailable) {
+      if (hasSpecialization) {
+        // Only proceed if the trainer has the required specialization
         final noConflictingSessions = await checkTrainingSessionOverlap(trainerDoc.id, startDate, endDate);
         if (noConflictingSessions) {
+          // Add the trainer to the list if they have no conflicting sessions
           matchingTrainers.add(TrainerProfile.fromFirestore(trainerDoc));
         }
       }
@@ -35,44 +37,36 @@ class SearchTrainers {
   }
 
   Future<bool> checkSpecialization(DocumentSnapshot trainerDoc, String? specialization) async {
+    if (specialization == null) return true; // If no specialization is specified, skip this check
     final specializationSnapshot = await trainerDoc.reference.collection('specializations').get();
     return specializationSnapshot.docs.any((specDoc) => specDoc['name'] == specialization);
   }
 
-  Future<bool> checkAvailability(DocumentSnapshot trainerDoc, DateTime? startDate, DateTime? endDate) async {
-    final availabilitySnapshot = await trainerDoc.reference.collection('datesAvailability').get();
-    return availabilitySnapshot.docs.any((doc) {
-      final data = doc.data() as Map;
-      final availStartTime = (data['startTime'] as Timestamp).toDate().toLocal();
-      final availEndTime = (data['endTime'] as Timestamp).toDate().toLocal();
-      return availStartTime != null &&
-          availEndTime != null &&
-          startDate != null &&
-          endDate != null &&
-          availStartTime.isBefore(endDate) &&
-          availEndTime.isAfter(startDate);
-    });
-  }
-
   Future<bool> checkTrainingSessionOverlap(String trainerId, DateTime? startDate, DateTime? endDate) async {
+    if (startDate == null || endDate == null) return true; // Assume availability if dates are not provided
+
     final sessionSnapshots = await firestore.collection('training_sessions')
         .where('trainerId', isEqualTo: trainerId)
         .where('status', whereIn: ['pending', 'approved'])
+        .orderBy('startTime')
         .get();
 
-    bool noOverlap = true;
-
-    for (var sessionDoc in sessionSnapshots.docs) {
-      final sessionData = sessionDoc.data() as Map;
+    for (var doc in sessionSnapshots.docs) {
+      final sessionData = doc.data() as Map;
       final sessionStartTime = (sessionData['startTime'] as Timestamp).toDate();
       final sessionEndTime = (sessionData['endTime'] as Timestamp).toDate();
 
-      if (sessionStartTime.isBefore(endDate!) && sessionEndTime.isAfter(startDate!)) {
-        noOverlap = false;
-        break;
+      // If the session overlaps with the requested range, check for exact coverage
+      if (!(endDate.isBefore(sessionStartTime) || startDate.isAfter(sessionEndTime))) {
+        // Session overlaps with the request; now check if it completely covers the requested range
+        if (startDate.isAfter(sessionStartTime) && endDate.isBefore(sessionEndTime)) {
+          // The requested range is completely within a session, indicating no availability
+          return false;
+        }
       }
     }
 
-    return noOverlap;
+    // No session completely covers the requested range, indicating availability
+    return true;
   }
 }
