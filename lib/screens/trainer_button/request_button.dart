@@ -73,9 +73,9 @@ class _request_button extends State<request_button> {
   }
 
   void _approveRequest(String sessionId, BuildContext context) {
-    FirebaseFirestore.instance.collection('training_sessions').doc(sessionId).update({
-      'status': 'approved'
-    }).then((_) {
+    TrainingSession trainingSession = TrainingSession(tid: sessionId, startTime: DateTime.now(), endTime: DateTime.now(), sport: 'sport', spec: 'spec', traineeId: 'traineeId', trainerId: 'trainerId', status: 'status');
+    // wait untill trainingsession.approveRequest is done, if it is done, show snackbar'
+    trainingSession.approveTrainingSession().then((_) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text("Request Approved"),
         backgroundColor: Colors.green,
@@ -83,25 +83,31 @@ class _request_button extends State<request_button> {
     }).catchError((error) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text("Approval error"),
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.orange,
       ));
     });
   }
 
   void _cancelRequest(String sessionId, BuildContext context) {
-    FirebaseFirestore.instance.collection('training_sessions').doc(sessionId).update({
-      'status': 'cancelled'
-    }).then((_) {
+    TrainingSession trainingSession = TrainingSession(tid: sessionId,
+        startTime: DateTime.now(),
+        endTime: DateTime.now(),
+        sport: 'sport',
+        spec: 'spec',
+        traineeId: 'traineeId',
+        trainerId: 'trainerId',
+        status: 'status');
+    // wait untill trainingsession.approveRequest is done, if it is done, show snackbar'
+    trainingSession.cancelTrainingSession().then((_) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text("Request canceled"),
         backgroundColor: Colors.red,
       ));
     }).catchError((error) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Approval error"),
-        backgroundColor: Colors.red,
+        content: Text("Cancellation error"),
+        backgroundColor: Colors.orange,
       ));
     });
   }
-
 }

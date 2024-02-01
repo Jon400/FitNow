@@ -1,3 +1,4 @@
+import 'package:fit_now/screens/search/notifications.dart';
 import 'package:fit_now/screens/search/search_training.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,7 @@ class _TraineeWrapperState extends State<TraineeWrapper> {
   final _pageOptions = [
     TraineeProfileScreen(),
     TraineeSearchPage(),
+    NotificationsPage(),
     AccountScreen(),
   ];
 
@@ -38,6 +40,11 @@ class _TraineeWrapperState extends State<TraineeWrapper> {
           BottomNavigationBarItem(
             icon: Icon(Icons.search_rounded),
             label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            // for notifications
+              icon: Icon(Icons.notifications),
+              label: 'Notifications',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_box),

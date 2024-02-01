@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fit_now/models/profile.dart';
 import 'package:fit_now/models/request.dart';
+import 'package:fit_now/models/trainer.dart';
 import 'package:flutter/material.dart';
 
 class TrainingSession {
@@ -97,19 +99,69 @@ class TrainingSession {
   // the requests will be streamed out in a list of request objects
   Stream<List<Request>> streamRequests() {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    return firestore
+        .collection('training_sessions')
+        .doc(tid)
+        .collection('requests')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Request.fromFirestore(doc)).toList());
+  }
+
+  // Stream get the Trainer
+  Stream<TrainerProfile> getTrainer() {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // where the tainerId is equal to the trainerId of the training session
+    return firestore
+        .collection('profiles')
+        .doc(trainerId)
+        .snapshots()
+        .map((DocumentSnapshot doc) => TrainerProfile.fromFirestore(doc));
+  }
+
+  // Stream get the Trainee
+  Stream<Profile> getTrainee() {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     return firestore
-        .collection('requests')
-        .where('sessionId', isEqualTo: tid)
+        .collection('profiles')
+        .doc(traineeId)
         .snapshots()
-        .map((QuerySnapshot query) {
-      List<Request> retVal = [];
-
-      query.docs.forEach((element) {
-        retVal.add(Request.fromFirestore(element));
-      });
-
-      return retVal;
-    });
+        .map((DocumentSnapshot doc) => Profile.fromFirestore(doc));
   }
+
+
+  // approve training session
+   Future<void> approveTrainingSession() async {
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      // update the status of the training session to approved
+      await firestore.collection('training_sessions').doc(tid).update({
+        'status': 'approved'
+      });
+      // update the status of the request to approved
+      await firestore.collection('training_sessions').doc(tid).collection('requests').doc().set(
+        {
+          'status': 'approved',
+          'timestamp': DateTime.now(),
+        }
+      );
+      return;
+    }
+
+    // cancel training session
+    Future<void> cancelTrainingSession() async {
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      // update the status of the training session to cancelled
+      await firestore.collection('training_sessions').doc(tid).update({
+        'status': 'cancelled'
+      });
+      // update the status of the request to cancelled
+      await firestore.collection('training_sessions').doc(tid).collection('requests').doc().set(
+        {
+          'status': 'cancelled',
+          'timestamp': DateTime.now(),
+        }
+      );
+      return;
+    }
 }
