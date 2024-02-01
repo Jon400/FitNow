@@ -324,7 +324,7 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
   bool isWithinAvailableSlot(DateTime time, bool isStartTime) {
     for (var slot in widget.availableTimeSlots) {
       if (isStartTime) {
-        if (time.isAfter(slot.startTime) && time.isBefore(slot.endTime)) {
+        if ((time.isAfter(slot.startTime) || time.isAtSameMomentAs(slot.startTime)) && (time.isBefore(slot.endTime) || time.isAtSameMomentAs(slot.endTime))) {
           return true;
         }
       } else {

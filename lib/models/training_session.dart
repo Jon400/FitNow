@@ -56,7 +56,9 @@ class TrainingSession {
         .get();
 
     // Combine results to check for overlap
-    final existingSessions = {...sessionsEndingAfterStart.docs, ...sessionsStartingBeforeEnd.docs};
+    // take the intersection of the two sets
+    final existingSessions = sessionsEndingAfterStart.docs.toSet().intersection(sessionsStartingBeforeEnd.docs.toSet());
+    // final existingSessions = {...sessionsEndingAfterStart.docs, ...sessionsStartingBeforeEnd.docs};
 
     if (existingSessions.isNotEmpty) {
       // Handle the situation when the trainer is already booked

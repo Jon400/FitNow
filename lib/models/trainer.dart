@@ -59,8 +59,7 @@ class TrainerProfile extends Profile {
         .collection('datesAvailability')
         .where('endTime', isGreaterThanOrEqualTo: startDate)
         .snapshots()
-        .map((snapshot) =>
-        snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
+        .map((snapshot) => snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
 
     // Fetch the booked time slots
     var bookedSessionsStream = FirebaseFirestore.instance
@@ -68,44 +67,42 @@ class TrainerProfile extends Profile {
         .where('trainerId', isEqualTo: pid)
         .where('endTime', isGreaterThanOrEqualTo: startDate)
         .snapshots()
-        .map((snapshot) =>
-        snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
+        .map((snapshot) => snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
 
-    return availabilityStream.asyncMap((
-        List<TimeRange> availableTimeRanges) async {
+    return availabilityStream.asyncMap((List<TimeRange> availableTimeRanges) async {
       var bookedTimeRanges = await bookedSessionsStream.first;
+      // Sort booked sessions by start time
+      bookedTimeRanges.sort((a, b) => a.startTime.compareTo(b.startTime));
 
       List<TimeRange> filteredAvailableTimeRanges = [];
+
       for (var availableTimeRange in availableTimeRanges) {
-        var startTime = availableTimeRange.startTime;
-        var endTime = availableTimeRange.endTime;
+        List<TimeRange> tempRanges = [availableTimeRange]; // Start with the full range
 
         for (var bookedTimeRange in bookedTimeRanges) {
-          if (bookedTimeRange.endTime.isBefore(availableTimeRange.startTime) ||
-              bookedTimeRange.startTime.isAfter(availableTimeRange.endTime)) {
-            // No overlap, add the entire available time range
-            filteredAvailableTimeRanges.add(availableTimeRange);
-          } else {
-            // Split the time range around the booked session
-            if (bookedTimeRange.startTime.isAfter(startTime) &&
-                bookedTimeRange.startTime.isBefore(endTime)) {
-              // Add time before the booked session
-              filteredAvailableTimeRanges.add(TimeRange(
-                  startTime: startTime, endTime: bookedTimeRange.startTime));
-            }
-            if (bookedTimeRange.endTime.isAfter(startTime) &&
-                bookedTimeRange.endTime.isBefore(endTime)) {
-              // Add time after the booked session
-              startTime = bookedTimeRange.endTime;
+          List<TimeRange> newTempRanges = [];
+          for (var tempRange in tempRanges) {
+            // Check if the bookedTimeRange overlaps with the current tempRange
+            if (bookedTimeRange.startTime.isBefore(tempRange.endTime) &&
+                bookedTimeRange.endTime.isAfter(tempRange.startTime)) {
+              // Overlap found; split the tempRange around the bookedTimeRange
+              if (bookedTimeRange.startTime.isAfter(tempRange.startTime)) {
+                // Add time before the booked session
+                newTempRanges.add(TimeRange(startTime: tempRange.startTime, endTime: bookedTimeRange.startTime));
+              }
+              if (bookedTimeRange.endTime.isBefore(tempRange.endTime)) {
+                // Add time after the booked session
+                newTempRanges.add(TimeRange(startTime: bookedTimeRange.endTime, endTime: tempRange.endTime));
+              }
+            } else {
+              // No overlap; keep the tempRange as is
+              newTempRanges.add(tempRange);
             }
           }
+          tempRanges = newTempRanges; // Update tempRanges with potentially split ranges
         }
 
-        // Add remaining time slot after all booked sessions are accounted for
-        if (startTime.isBefore(endTime)) {
-          filteredAvailableTimeRanges.add(
-              TimeRange(startTime: startTime, endTime: endTime));
-        }
+        filteredAvailableTimeRanges.addAll(tempRanges); // Add all non-overlapped and adjusted ranges
       }
 
       return filteredAvailableTimeRanges;
