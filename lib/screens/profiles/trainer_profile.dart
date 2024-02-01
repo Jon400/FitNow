@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart';
 import '../../models/trainer.dart';
 import '../../services/database.dart';
+import '../../models/sport.dart'; // Assuming this is the correct path for the Sport class
 
 class TrainerProfileScreen extends StatefulWidget {
   @override
@@ -14,8 +14,9 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? selectedSport;
-  List<String> specs = [];
   List<String> selectedSpecs = [];
+  Map<String, List<String>> specializationsBySport = {};
+
   TextEditingController _firstNameController = TextEditingController();
   TextEditingController _lastNameController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
@@ -28,6 +29,25 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
     _lastNameController.text = '';
     _descriptionController.text = '';
     _logoUrlController.text = '';
+    fetchSportsAndSpecializations();
+  }
+
+  void fetchSportsAndSpecializations() async {
+    var sportsSnapshot = await _firestore.collection('sports').get();
+    var newSpecializationsBySport = <String, List<String>>{};
+
+    for (var sportDoc in sportsSnapshot.docs) {
+      Sport sport = Sport.fromFirestore(sportDoc);
+      newSpecializationsBySport[sport.name] = sport.specializations;
+    }
+
+    if (newSpecializationsBySport.isNotEmpty) {
+      setState(() {
+        specializationsBySport = newSpecializationsBySport;
+        selectedSport = specializationsBySport.keys.first;
+        selectedSpecs = specializationsBySport[selectedSport!] ?? [];
+      });
+    }
   }
 
   @override
@@ -49,20 +69,11 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             TrainerProfile trainerData = snapshot.data!;
-            if (_firstNameController.text != trainerData.firstName) {
-              _firstNameController.text = trainerData.firstName;
-            }
-            if (_lastNameController.text != trainerData.lastName) {
-              _lastNameController.text = trainerData.lastName;
-            }
-            if (_descriptionController.text != trainerData.description) {
-              _descriptionController.text = trainerData.description;
-            }
-            if (_logoUrlController.text != trainerData.logoUrl) {
-              _logoUrlController.text = trainerData.logoUrl;
-            }
+            _firstNameController.text = trainerData.firstName;
+            _lastNameController.text = trainerData.lastName;
+            _descriptionController.text = trainerData.description;
+            _logoUrlController.text = trainerData.logoUrl;
             selectedSport = trainerData.sport;
-            specs = trainerData.specializations;
             selectedSpecs = trainerData.specializations;
 
             return SingleChildScrollView(
@@ -85,15 +96,15 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                     ),
                     SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () {}, // Placeholder for navigation to Planning
+                      onPressed: () {}, // Placeholder for navigation
                       child: Text("Planning"),
                     ),
                     ElevatedButton(
-                      onPressed: () {}, // Placeholder for navigation to Requests
+                      onPressed: () {}, // Placeholder for navigation
                       child: Text("Requests"),
                     ),
                     ElevatedButton(
-                      onPressed: () {}, // Placeholder for navigation to Activity Time
+                      onPressed: () {}, // Placeholder for navigation
                       child: Text("Activity Time"),
                     ),
                   ],
@@ -114,97 +125,55 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Edit Profile'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                TextField(
-                  controller: _firstNameController,
-                  decoration: InputDecoration(labelText: 'First Name'),
-                ),
-                TextField(
-                  controller: _lastNameController,
-                  decoration: InputDecoration(labelText: 'Last Name'),
-                ),
-                TextField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(labelText: 'Description'),
-                ),
-                TextField(
-                  controller: _logoUrlController,
-                  decoration: InputDecoration(labelText: 'Logo URL'),
-                ),
-                StreamBuilder<QuerySnapshot>(
-                  stream: _firestore.collection('sports').snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      List<DropdownMenuItem> sportItems = [];
-                      for (var doc in snapshot.data!.docs) {
-                        var sport = doc.data() as Map<String, dynamic>;
-                        sportItems.add(
-                          DropdownMenuItem(
-                            child: Text(sport['name']),
-                            value: sport['name'],
-                          ),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    TextField(
+                      controller: _firstNameController,
+                      decoration: InputDecoration(labelText: 'First Name'),
+                    ),
+                    TextField(
+                      controller: _lastNameController,
+                      decoration: InputDecoration(labelText: 'Last Name'),
+                    ),
+                    TextField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(labelText: 'Description'),
+                    ),
+                    TextField(
+                      controller: _logoUrlController,
+                      decoration: InputDecoration(labelText: 'Logo URL'),
+                    ),
+                    DropdownButtonFormField<String>(
+                      value: selectedSport,
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedSport = newValue!;
+                          selectedSpecs = specializationsBySport[selectedSport] ?? [];
+                        });
+                      },
+                      items: specializationsBySport.keys.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
                         );
-                      }
-                      return DropdownButton(
-                        items: sportItems,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedSport = value.toString();
-                            selectedSpecs.clear();
-                            // Retrieve and set previously selected specializations here
-                            selectedSpecs.addAll(specs);
-                          });
-                        },
-                        value: selectedSport,
-                        hint: Text('Select a sport'),
-                      );
-                    } else {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                  },
+                      }).toList(),
+                    ),
+                    MultiSelectChip(
+                      specializationsBySport[selectedSport] ?? [],
+                      onSelectionChanged: (selectedList) {
+                        setState(() {
+                          selectedSpecs = selectedList;
+                        });
+                      },
+                      selectedChoices: selectedSpecs,
+                    ),
+                  ],
                 ),
-                StreamBuilder<QuerySnapshot>(
-                  stream: _firestore.collection('sports').where('name', isEqualTo: selectedSport).snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      List<DropdownMenuItem> specItems = [];
-                      for (var doc in snapshot.data!.docs) {
-                        var sport = doc.data() as Map<String, dynamic>;
-                        var specializations = sport['specializations'] as List<dynamic>;
-                        for (var spec in specializations) {
-                          specItems.add(
-                            DropdownMenuItem(
-                              child: Text(spec),
-                              value: spec,
-                            ),
-                          );
-                        }
-                      }
-                      return Column(
-                        children: [
-                          DropdownButton(
-                            items: specItems,
-                            onChanged: (value) {
-                              setState(() {
-                                selectedSpecs.add(value.toString());
-                              });
-                            },
-
-                            hint: Text('Select a specialization'),
-                          ),
-                          // Display the selected specializations
-                          Text('Selected Specializations: ${selectedSpecs.join(", ")}'),
-                        ],
-                      );
-                    } else {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                  },
-                ),
-              ],
-            ),
+              );
+            },
           ),
           actions: <Widget>[
             TextButton(
@@ -226,7 +195,6 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
     );
   }
 
-
   Future<void> updateTrainerProfile(String userId) async {
     await DatabaseService(uid: userId, roleView: '').updateTrainerProfile(
       _firstNameController.text,
@@ -245,5 +213,46 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
     _descriptionController.dispose();
     _logoUrlController.dispose();
     super.dispose();
+  }
+}
+
+class MultiSelectChip extends StatefulWidget {
+  final List<String> reportList;
+  final Function(List<String>) onSelectionChanged;
+  final List<String> selectedChoices;
+
+  MultiSelectChip(this.reportList, {required this.onSelectionChanged, required this.selectedChoices});
+
+  @override
+  _MultiSelectChipState createState() => _MultiSelectChipState();
+}
+
+class _MultiSelectChipState extends State<MultiSelectChip> {
+  List<String> selectedChoices = [];
+
+  @override
+  void initState() {
+    super.initState();
+    selectedChoices = widget.selectedChoices;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      children: widget.reportList.map((item) {
+        return ChoiceChip(
+          label: Text(item),
+          selected: selectedChoices.contains(item),
+          onSelected: (selected) {
+            setState(() {
+              selectedChoices.contains(item)
+                  ? selectedChoices.remove(item)
+                  : selectedChoices.add(item);
+              widget.onSelectionChanged(selectedChoices);
+            });
+          },
+        );
+      }).toList(),
+    );
   }
 }
