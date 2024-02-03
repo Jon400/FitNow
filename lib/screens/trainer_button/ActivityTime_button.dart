@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../models/app_user.dart';
+import '../../models/trainer.dart';
 
 class ActivityTimeButton extends StatefulWidget {
   @override
@@ -10,72 +13,28 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  List<Map<String, TimeOfDay>> _workingTimes = [];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Setting of my activity time'),
-      ),
-      body: Column(
-        children: [
-          ElevatedButton(
-            onPressed: () {
-              _openCalendarScreen();
-            },
-            child: Text("Open Calendar"),
-          ),
-          Expanded(
-            child: Center(
-              child: Text("Current Page Content"),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _openCalendarScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CalendarScreen(
-          workingTimes: List.from(_workingTimes),
-          onTimeRangesSelected: (workingTimes) {
-            setState(() {
-              _workingTimes = List.from(workingTimes);
-            });
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class CalendarScreen extends StatefulWidget {
-  final List<Map<String, TimeOfDay>> workingTimes;
-  final Function(List<Map<String, TimeOfDay>>) onTimeRangesSelected;
-
-  CalendarScreen({
-    required this.workingTimes,
-    required this.onTimeRangesSelected,
-  });
-
-  @override
-  _CalendarScreenState createState() => _CalendarScreenState();
-}
-
-class _CalendarScreenState extends State<CalendarScreen> {
-  CalendarFormat _calendarFormat = CalendarFormat.week;
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  List<Map<String, TimeOfDay>> _workingTimes = [];
+  List<TimeRange> _workingTimes = [];
+  late TrainerProfile _trainerProfile;
 
   @override
   void initState() {
     super.initState();
-    _workingTimes = List.from(widget.workingTimes);
+    final appUser = Provider.of<AppUser?>(context, listen: false);
+    _trainerProfile = TrainerProfile(
+      pid: appUser!.uid, roleView: '',
+      firstName: '', lastName: '', logoUrl: '',
+      description: '', sport: '', specializations: [],
+    );
+    _listenToAvailability();
+  }
+
+  void _listenToAvailability() {
+    // Listening to the trainer's availability
+    _trainerProfile.getAvailabilityTime().listen((timeSlots) {
+      setState(() {
+        _workingTimes = timeSlots;
+      });
+    });
   }
 
   @override
@@ -87,110 +46,100 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: Column(
         children: [
           TableCalendar(
-            firstDay: DateTime.utc(2024, 1, 1),
-            lastDay: DateTime.utc(2024, 12, 31),
-            focusedDay: DateTime.now(),
-            calendarFormat: CalendarFormat.week,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
+            focusedDay: _focusedDay,
+            calendarFormat: _calendarFormat,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
                 _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
               });
             },
           ),
-          if (_selectedDay != null)
-            Expanded(
-              child: Column(
-                children: [
-                  Text(
-                    'Selected Day: ${_selectedDay!.day}/${_selectedDay!.month}/${_selectedDay!.year}',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Text('Working Times:'),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _workingTimes.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(
-                            '${_getTimeOfDayString(_workingTimes[index]['start']!)} - ${_getTimeOfDayString(_workingTimes[index]['end']!)}',
-                          ),
-                          onTap: () {
-                            _showTimeRangePicker(
-                              _workingTimes[index]['start']!,
-                              _workingTimes[index]['end']!,
-                                  (start, end) {
-                                setState(() {
-                                  _workingTimes[index]['start'] = start;
-                                  _workingTimes[index]['end'] = end;
-                                  widget.onTimeRangesSelected(_workingTimes);
-                                });
-                              },
-                            );
-                          },
-                        );
-                      },
+          Expanded(
+            child: ListView.builder(
+              itemCount: _workingTimes.length,
+              itemBuilder: (context, index) {
+                final timeRange = _workingTimes[index];
+                if (_selectedDay != null &&
+                    isSameDay(_selectedDay, timeRange.startTime)) {
+                  return ListTile(
+                    title: Text(
+                      '${timeRange.startTime.hour.toString().padLeft(2, '0')}:${timeRange.startTime.minute.toString().padLeft(2, '0')} - ${timeRange.endTime.hour.toString().padLeft(2, '0')}:${timeRange.endTime.minute.toString().padLeft(2, '0')}',
                     ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      _addTimeRange();
-                    },
-                    child: Text("Add Time Range"),
-                  ),
-                ],
-              ),
+                  );
+                } else {
+                  return Container();
+                }
+              },
             ),
+          ),
           ElevatedButton(
-            onPressed: () {
-              widget.onTimeRangesSelected(_workingTimes);
-              Navigator.pop(context); // Close the current screen
-            },
-            child: Text("Save Availability"),
+            onPressed: _addTimeRange,
+            child: Text("Add Time Range"),
           ),
         ],
       ),
     );
   }
 
-  String _getTimeOfDayString(TimeOfDay timeOfDay) {
-    return '${timeOfDay.hour}:${timeOfDay.minute.toString().padLeft(2, '0')}';
-  }
-
   Future<void> _showTimeRangePicker(
-      TimeOfDay initialStart,
-      TimeOfDay initialEnd,
-      Function(TimeOfDay, TimeOfDay) onTimeRangeSelected,
-      ) async {
-    TimeOfDay? start = await showTimePicker(
+      DateTime initialStart,
+      DateTime initialEnd,
+      Function(DateTime, DateTime) onTimeRangeSelected) async {
+    TimeOfDay initialStartTime = TimeOfDay(hour: initialStart.hour, minute: initialStart.minute);
+    TimeOfDay initialEndTime = TimeOfDay(hour: initialEnd.hour, minute: initialEnd.minute);
+
+    TimeOfDay? startTime = await showTimePicker(
       context: context,
-      initialTime: initialStart,
+      initialTime: initialStartTime,
     );
 
-    if (start != null) {
-      TimeOfDay? end = await showTimePicker(
-        context: context,
-        initialTime: initialEnd,
-      );
+    if (startTime == null) return;
 
-      if (end != null) {
-        onTimeRangeSelected(start, end);
-      }
-    }
+    TimeOfDay? endTime = await showTimePicker(
+      context: context,
+      initialTime: initialEndTime,
+    );
+
+    if (endTime == null) return;
+
+    DateTime startDateTime = DateTime(
+      _selectedDay!.year,
+      _selectedDay!.month,
+      _selectedDay!.day,
+      startTime.hour,
+      startTime.minute,
+    );
+    DateTime endDateTime = DateTime(
+      _selectedDay!.year,
+      _selectedDay!.month,
+      _selectedDay!.day,
+      endTime.hour,
+      endTime.minute,
+    );
+
+    onTimeRangeSelected(startDateTime, endDateTime);
   }
 
   void _addTimeRange() {
-    _showTimeRangePicker(
-      TimeOfDay(hour: 8, minute: 0),
-      TimeOfDay(hour: 10, minute: 0),
-          (start, end) {
-        setState(() {
-          _workingTimes.add({'start': start, 'end': end});
-        });
-      },
-    );
+    if (_selectedDay == null) return;
+
+    DateTime now = DateTime.now();
+    DateTime initialStart = DateTime(now.year, now.month, now.day, 8, 0);
+    DateTime initialEnd = DateTime(now.year, now.month, now.day, 10, 0);
+
+    _showTimeRangePicker(initialStart, initialEnd, (DateTime start, DateTime end) {
+      TimeRange newTimeRange = TimeRange(startTime: start, endTime: end);
+      _trainerProfile.createAvailabilityTime(newTimeRange).then((_) {
+        // Optionally refresh the list or show a success message
+      }).catchError((error) {
+        // Handle errors, such as showing an error message
+      });
+    });
   }
 }
+
+

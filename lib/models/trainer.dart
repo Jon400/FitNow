@@ -110,6 +110,28 @@ class TrainerProfile extends Profile {
       return filteredAvailableTimeRanges;
     });
   }
+
+  // Get all availbility Time
+  Stream<List<TimeRange>> getAvailabilityTime() {
+    return FirebaseFirestore.instance
+        .collection('profiles')
+        .doc(pid)
+        .collection('datesAvailability')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
+  }
+
+  // Create a new availability time
+  Future<void> createAvailabilityTime(TimeRange timeRange) async {
+    await FirebaseFirestore.instance
+        .collection('profiles')
+        .doc(pid)
+        .collection('datesAvailability')
+        .add({
+      'startTime': timeRange.startTime,
+      'endTime': timeRange.endTime,
+    });
+  }
 }
 
 class TimeRange {
@@ -132,4 +154,5 @@ class TimeRange {
       endTime: (data['endTime'] as Timestamp).toDate().toLocal(),
     );
   }
+
 }
