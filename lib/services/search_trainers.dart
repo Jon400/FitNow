@@ -24,15 +24,17 @@ class SearchTrainers {
     for (var trainerDoc in querySnapshot.docs) {
       final hasSpecialization = await checkSpecialization(trainerDoc, specialization);
       if (hasSpecialization) {
-        // Only proceed if the trainer has the required specialization
-        final noConflictingSessions = await checkTrainingSessionOverlap(trainerDoc.id, startDate, endDate);
-        if (noConflictingSessions) {
-          // Add the trainer to the list if they have no conflicting sessions
-          matchingTrainers.add(TrainerProfile.fromFirestore(trainerDoc));
+        final isAvailable = await checkTimesAvailable(
+            trainerDoc, startDate, endDate);
+        if (isAvailable) {
+          final noConflictingSessions = await checkTrainingSessionOverlap(
+              trainerDoc.id, startDate, endDate);
+          if (noConflictingSessions) {
+            matchingTrainers.add(TrainerProfile.fromFirestore(trainerDoc));
+          }
         }
       }
     }
-
     yield matchingTrainers;
   }
 
@@ -40,6 +42,26 @@ class SearchTrainers {
     if (specialization == null) return true; // If no specialization is specified, skip this check
     final specializationSnapshot = await trainerDoc.reference.collection('specializations').get();
     return specializationSnapshot.docs.any((specDoc) => specDoc['name'] == specialization);
+  }
+
+  Future<bool> checkTimesAvailable(DocumentSnapshot trainerDoc, DateTime? startDate, DateTime? endDate) async {
+    if (startDate == null || endDate == null) return true; // Assume availability if dates are not provided
+
+    final availabilitySnapshot = await trainerDoc.reference.collection('datesAvailability').get();
+    for (var doc in availabilitySnapshot.docs) {
+      final availabilityData = doc.data() as Map;
+      final availabilityStartTime = availabilityData['startTime'].toDate();
+      final availabilityEndTime = availabilityData['endTime'].toDate();
+
+      // If the availability overlaps with the requested range, check for exact coverage
+      if (!(endDate.isBefore(availabilityStartTime) || startDate.isAfter(availabilityEndTime))) {
+        // Availability overlaps with the request; now check if it completely covers the requested range
+        return true;
+      }
+    }
+
+    // No availability completely covers the requested range, indicating no availability
+    return false;
   }
 
   Future<bool> checkTrainingSessionOverlap(String trainerId, DateTime? startDate, DateTime? endDate) async {
