@@ -36,7 +36,7 @@ class _TrainerWrapperState extends State<TrainerWrapper> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_box),
-            label: 'Account',
+            label: 'Home',
           ),
         ],
       ),

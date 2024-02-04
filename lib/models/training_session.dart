@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fit_now/models/profile.dart';
 import 'package:fit_now/models/request.dart';
 import 'package:fit_now/models/trainer.dart';
-import 'package:flutter/material.dart';
+
 
 class TrainingSession {
   final String tid;

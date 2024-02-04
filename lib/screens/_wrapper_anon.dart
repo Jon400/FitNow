@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'account/index.dart';
-import 'profiles/anon.dart';
 
 class AnonWrapper extends StatefulWidget {
   @override
@@ -11,7 +10,7 @@ class AnonWrapper extends StatefulWidget {
 class _AnonWrapperState extends State<AnonWrapper> {
   int _selectedPage = 0;
   final _pageOptions = [
-    AnonScreen(),
+
     AccountScreen(),
   ];
 
@@ -28,14 +27,10 @@ class _AnonWrapperState extends State<AnonWrapper> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.masks),
-            label: 'Anonymous',
-          ),
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.account_box),
-            label: 'Account',
+            label: 'Home',
           ),
         ],
       ),

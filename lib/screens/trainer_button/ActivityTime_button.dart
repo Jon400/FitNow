@@ -21,9 +21,14 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
     super.initState();
     final appUser = Provider.of<AppUser?>(context, listen: false);
     _trainerProfile = TrainerProfile(
-      pid: appUser!.uid, roleView: '',
-      firstName: '', lastName: '', logoUrl: '',
-      description: '', sport: '', specializations: [],
+      pid: appUser!.uid,
+      roleView: '',
+      firstName: '',
+      lastName: '',
+      logoUrl: '',
+      description: '',
+      sport: '',
+      specializations: [],
     );
     _listenToAvailability();
   }
@@ -57,6 +62,16 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
                 _focusedDay = focusedDay;
               });
             },
+            calendarStyle: const CalendarStyle(
+              todayDecoration: BoxDecoration(
+                color:  Color(0xFF7B6F72), // Change button's background color
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: Color(0xFF9DCEFF),
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
           Expanded(
             child: ListView.builder(
@@ -78,19 +93,24 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
           ),
           ElevatedButton(
             onPressed: _addTimeRange,
-            child: Text("Add Time Range"),
+            style: ElevatedButton.styleFrom(
+              primary:  Color(0xFF92A3FD), // Change button's background color
+              onPrimary: Colors.white, // Change text color
+
+            ),
+            child: Text("Select Time Range"), // Change button's text
           ),
         ],
       ),
     );
   }
 
-  Future<void> _showTimeRangePicker(
-      DateTime initialStart,
-      DateTime initialEnd,
+  Future<void> _showTimeRangePicker(DateTime initialStart, DateTime initialEnd,
       Function(DateTime, DateTime) onTimeRangeSelected) async {
-    TimeOfDay initialStartTime = TimeOfDay(hour: initialStart.hour, minute: initialStart.minute);
-    TimeOfDay initialEndTime = TimeOfDay(hour: initialEnd.hour, minute: initialEnd.minute);
+    TimeOfDay initialStartTime =
+        TimeOfDay(hour: initialStart.hour, minute: initialStart.minute);
+    TimeOfDay initialEndTime =
+        TimeOfDay(hour: initialEnd.hour, minute: initialEnd.minute);
 
     TimeOfDay? startTime = await showTimePicker(
       context: context,
@@ -131,7 +151,8 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
     DateTime initialStart = DateTime(now.year, now.month, now.day, 8, 0);
     DateTime initialEnd = DateTime(now.year, now.month, now.day, 10, 0);
 
-    _showTimeRangePicker(initialStart, initialEnd, (DateTime start, DateTime end) {
+    _showTimeRangePicker(initialStart, initialEnd,
+        (DateTime start, DateTime end) {
       TimeRange newTimeRange = TimeRange(startTime: start, endTime: end);
       _trainerProfile.createAvailabilityTime(newTimeRange).then((_) {
         // Optionally refresh the list or show a success message
@@ -141,5 +162,3 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
     });
   }
 }
-
-

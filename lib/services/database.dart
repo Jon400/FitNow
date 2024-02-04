@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fit_now/models/trainer.dart';
+import 'package:flutter/material.dart';
 
 import '../models/profile.dart';
 import '../models/sport.dart';

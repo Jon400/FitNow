@@ -11,10 +11,16 @@ class AccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Account'),
+        title: Text('FitNow Home'),
       ),
       body: Column(
         children: [
+          // Add your logo image here
+          Image.asset(
+            'assets/images/logo.jpg',
+            height: 500, // Adjust the height as needed
+            width: 500, // Adjust the width as needed
+          ),
           Expanded(
             child: ListView(
               children: ListTile.divideTiles(
@@ -36,7 +42,13 @@ class AccountScreen extends StatelessWidget {
 
     if (user == null) {
       return ListTile(
-        title: Text('Sign In or Sign Up'),
+        title:  const Text(
+          ' Sign In or Sign Up',
+          style: TextStyle(
+            fontSize: 20,
+
+          ),
+        ),
         leading: Icon(Icons.login),
         onTap: () {
           Navigator.push(
@@ -58,3 +70,4 @@ class AccountScreen extends StatelessWidget {
     }
   }
 }
+

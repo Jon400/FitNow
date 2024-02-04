@@ -1,6 +1,7 @@
 # fit_now
 
-A new Flutter project.
+Android application developed using Flutter and Dart programming language. 
+We are using Firebase for the backend of the application.
 
 ## Getting Started
 

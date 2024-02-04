@@ -66,9 +66,10 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'RBAC',
+        title: 'FitNow',
         debugShowCheckedModeBanner: false,
         home: NavWrapper(),
+
       ),
     );
   }
