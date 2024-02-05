@@ -108,9 +108,9 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
   Future<void> _showTimeRangePicker(DateTime initialStart, DateTime initialEnd,
       Function(DateTime, DateTime) onTimeRangeSelected) async {
     TimeOfDay initialStartTime =
-        TimeOfDay(hour: initialStart.hour, minute: initialStart.minute);
+    TimeOfDay(hour: initialStart.hour, minute: initialStart.minute);
     TimeOfDay initialEndTime =
-        TimeOfDay(hour: initialEnd.hour, minute: initialEnd.minute);
+    TimeOfDay(hour: initialEnd.hour, minute: initialEnd.minute);
 
     TimeOfDay? startTime = await showTimePicker(
       context: context,
