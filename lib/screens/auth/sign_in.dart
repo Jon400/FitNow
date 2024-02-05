@@ -145,28 +145,23 @@ class _SignInState extends State<SignIn> {
                               if (_formKey.currentState!.validate()) {
                                 setState(() => loading = true);
                                 try {
+                                  dynamic status =
                                   await _auth.signInWithEmailAndPassword(
                                     email: email,
                                     password: password,
                                   );
-                                } catch (e) {
+                                  if (status != AuthResultStatus.successful) {
+                                    setState(() => loading = false);
+                                    final errorMsg = AuthExceptionHandler
+                                        .generateExceptionMessage(status);
+                                    _showAlertDialog(errorMsg);
+                                  }
+                                  Navigator.pop(context);
+                                }
+                                catch (e) {
                                   setState(() => loading = false);
                                   _showAlertDialog("There is no user record corresponding to this identifier. The user may have been deleted.");
-                                  // stop execution
-                                  return;
                                 }
-                                dynamic status =
-                                    await _auth.signInWithEmailAndPassword(
-                                  email: email,
-                                  password: password,
-                                );
-                                if (status != AuthResultStatus.successful) {
-                                  setState(() => loading = false);
-                                  final errorMsg = AuthExceptionHandler
-                                      .generateExceptionMessage(status);
-                                  _showAlertDialog(errorMsg);
-                                }
-                                Navigator.pop(context);
                               }
                             },
                           ),
