@@ -13,45 +13,19 @@ class SignUpWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        elevation: 2,
-        title: Text(
-          'Authenticating',
-          textAlign: TextAlign.start,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        automaticallyImplyLeading: false,
-      ),
-      body: (size.width > 600 && size.height > 600)
-          ? Container(
-              width: double.infinity,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 480,
-                    height: 380,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.deepPurple[100] ?? Colors.deepPurple),
-                      borderRadius: BorderRadius.all(
-                        const Radius.circular(8),
-                      ),
-                    ),
-                    child: SignUp(toggleView),
-                  ),
-                ],
-              ),
-            )
-          : SingleChildScrollView(
+     return Scaffold(
+        body: SingleChildScrollView(
+          child: Center(
+            child: SizedBox(
+              width: 437, height: 926,
               child: SignUp(toggleView),
             ),
-    );
+          ),
+        ),
+      );
+    }
   }
-}
+
 
 class SignUp extends StatefulWidget {
   final Function toggleView;
@@ -76,18 +50,25 @@ class _SignUpState extends State<SignUp> {
     return loading
         ? Loading()
         : Container(
-            padding: const EdgeInsets.all(24.0),
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/register.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.only(left: 10, top: 80),
                   child: Text('Create your Account',
-                      style: Theme.of(context).textTheme.headline5),
+                       style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        )),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Text('Its free to connect.'),
-                ),
+                const SizedBox(height: 50.0),
                 Form(
                   key: _formKey,
                   child: Column(
@@ -96,8 +77,11 @@ class _SignUpState extends State<SignUp> {
                         autofillHints: [AutofillHints.email],
                         decoration: InputDecoration(
                           hintText: 'Email',
-                          fillColor: Colors.white,
+                          fillColor: Colors.grey.shade100,
                           filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
                         ),
                         keyboardType: TextInputType.emailAddress,
                         validator: (val) =>
@@ -110,8 +94,11 @@ class _SignUpState extends State<SignUp> {
                       TextFormField(
                         decoration: InputDecoration(
                           hintText: 'Password',
-                          fillColor: Colors.white,
+                          fillColor: Colors.grey.shade100,
                           filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
                         ),
                         obscureText: true,
                         validator: (val) =>
@@ -124,8 +111,11 @@ class _SignUpState extends State<SignUp> {
                       TextFormField(
                         decoration: InputDecoration(
                           hintText: 'First / Given Name',
-                          fillColor: Colors.white,
+                          fillColor: Colors.grey.shade100,
                           filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
                         ),
                         validator: (val) =>
                             val!.length < 2 ? 'We need this for your Reservations' : null,
@@ -137,8 +127,11 @@ class _SignUpState extends State<SignUp> {
                       TextFormField(
                         decoration: InputDecoration(
                           hintText: 'Last Name or Initial',
-                          fillColor: Colors.white,
+                          fillColor: Colors.grey.shade100,
                           filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
                         ),
                         validator: (val) =>
                             val!.length < 1 ? 'Don\'t be shy!' : null,
@@ -148,11 +141,15 @@ class _SignUpState extends State<SignUp> {
                       ),
                       // adding here a drop down menu for role with two
                       // choices: trainee and trainer
+                      SizedBox(height: 20.0),
                       DropdownButtonFormField(
                         decoration: InputDecoration(
                           hintText: 'Role',
-                          fillColor: Colors.white,
+                          fillColor: Colors.grey.shade100,
                           filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
                         ),
                         value: Role.trainee.name, // default value
                         items: [
@@ -181,14 +178,18 @@ class _SignUpState extends State<SignUp> {
                             },
                             child: Text(
                               'Sign in instead',
+
                             ),
                           ),
                           ElevatedButton(
                               child: Text(
                                 'Continue',
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(color: Colors.black),
                               ),
-                              onPressed: () async {
+                            style: ElevatedButton.styleFrom(
+                                primary:  Color(0xFF86A7FC),
+                              ),
+                             onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
                                   setState(() => loading = true);
                                   dynamic status =

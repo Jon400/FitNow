@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:fit_now/screens/auth/authenticate.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'models/app_user.dart';
 import 'screens/nav_wrapper.dart';
 import 'services/auth.dart';
+
+import 'auth/authenticate.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,7 +69,10 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'FitNow',
+        theme: ThemeData(
+          fontFamily:'OpenSans-Regular'
+        )
+        ,
         debugShowCheckedModeBanner: false,
         home: NavWrapper(),
 
