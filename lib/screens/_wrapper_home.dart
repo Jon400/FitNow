@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'account/index.dart';
 
-class AnonWrapper extends StatefulWidget {
+class HomeWrapper extends StatefulWidget {
   @override
-  _AnonWrapperState createState() => _AnonWrapperState();
+  _HomeWrapperState createState() => _HomeWrapperState();
 }
 
-class _AnonWrapperState extends State<AnonWrapper> {
+class _HomeWrapperState extends State<HomeWrapper> {
   int _selectedPage = 0;
   final _pageOptions = [
 

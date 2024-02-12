@@ -152,13 +152,13 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
     DateTime initialEnd = DateTime(now.year, now.month, now.day, 10, 0);
 
     _showTimeRangePicker(initialStart, initialEnd,
-        (DateTime start, DateTime end) {
-      TimeRange newTimeRange = TimeRange(startTime: start, endTime: end);
-      _trainerProfile.createAvailabilityTime(newTimeRange).then((_) {
-        // Optionally refresh the list or show a success message
-      }).catchError((error) {
-        // Handle errors, such as showing an error message
-      });
-    });
+            (DateTime start, DateTime end) {
+          TimeRange newTimeRange = TimeRange(startTime: start, endTime: end);
+          _trainerProfile.createAvailabilityTime(newTimeRange).then((_) {
+            // Optionally refresh the list or show a success message
+          }).catchError((error) {
+            // Handle errors, such as showing an error message
+          });
+        });
   }
 }

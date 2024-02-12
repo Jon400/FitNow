@@ -5,7 +5,7 @@ import '../models/app_user.dart';
 import '../services/auth.dart';
 
 import '_wrapper_trainer.dart';
-import '_wrapper_anon.dart';
+import '_wrapper_home.dart';
 import '_wrapper_trainee.dart';
 
 class NavWrapper extends StatelessWidget {
@@ -13,7 +13,7 @@ class NavWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Provider.of<AppUser?>(context);
     if (user == null) {
-      return AnonWrapper();
+      return HomeWrapper();
     } else {
       return BaseWrapper();
     }

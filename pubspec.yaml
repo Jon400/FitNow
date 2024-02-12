@@ -74,6 +74,7 @@ flutter:
      - assets/images/fitnow.png
      - assets/images/login.png
      - assets/images/register.png
+     - assets/images/reset.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

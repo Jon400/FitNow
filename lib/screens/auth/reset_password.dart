@@ -17,8 +17,8 @@ class ResetPasswordWrapper extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 480,
-                    height: 380,
+                    width:428,
+                    height: 926,
                     decoration: BoxDecoration(
                       border: Border.all(),
                       borderRadius: BorderRadius.all(
@@ -64,17 +64,24 @@ class _ResetPasswordState extends State<ResetPassword> {
       body: loading
           ? Loading()
           : Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/reset.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text('Reset Your Password',
-                        style: Theme.of(context).textTheme.headline5),
+                        style: TextStyle(color: Colors.white ,fontSize: 33.0))
                   ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Text('Use your Email Address'),
+                    child: Text('Use your Email Address' , style: TextStyle(color:Colors.white),)
+
                   ),
                   Form(
                     key: _formKey,
@@ -96,7 +103,11 @@ class _ResetPasswordState extends State<ResetPassword> {
                         ElevatedButton(
                           child: Text(
                             'Reset Password',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: Colors.black),
+
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            primary: Color(0xFF86A7FC),
                           ),
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
@@ -124,6 +135,7 @@ class _ResetPasswordState extends State<ResetPassword> {
             title: Text(
               'Check Your Email',
               style: TextStyle(color: Colors.black),
+
             ),
             content: Text(
                 'If there is an account with that email, we\'ve sent a link to reset your password.'),

@@ -243,9 +243,9 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
       selectedSpecs,
     );
   }
-//
+
   @override
-  void dispose() { // Clean up the controller when the widget is disposed
+  void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _descriptionController.dispose();

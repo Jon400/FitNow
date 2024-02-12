@@ -177,7 +177,7 @@ class _SignInState extends State<SignIn> {
                 children: [
                   Text(
                     'Don\'t have an account?',
-                    style: TextStyle(fontSize: 18), // Increased font size
+                    style: TextStyle(fontSize: 15 ,fontWeight: FontWeight.bold)
                   ),
                   TextButton(
                     onPressed: () {
@@ -185,7 +185,8 @@ class _SignInState extends State<SignIn> {
                     },
                     child: Text(
                       'Join Us - it\'s Free',
-                      style: TextStyle(fontSize: 18), // Increased font size
+                      style: TextStyle(fontSize: 15 , fontWeight: FontWeight.bold)
+
                     ),
                   ),
                 ],
