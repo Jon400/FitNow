@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../models/app_user.dart';
-import '../../models/training_session.dart';  // Replace with your actual model file path
+import '../../models/profile.dart';
+import '../../models/training_session.dart';
+import '../../services/database.dart';  // Replace with your actual model file path
 
 class planning_button extends StatefulWidget {
   @override
@@ -35,6 +37,7 @@ class _PlanningScreenState extends State<planning_button> {
             .collection('training_sessions')
             .where('trainerId', isEqualTo: appUser.uid)
             .where('status', isEqualTo: 'approved')
+            .orderBy('startTime')
             .get();
 
         _trainingSessions = querySnapshot.docs.map((doc) {
@@ -106,11 +109,25 @@ class _PlanningScreenState extends State<planning_button> {
               itemCount: _getSessionsForSelectedDay().length,
               itemBuilder: (context, index) {
                 final trainingSession = _getSessionsForSelectedDay()[index];
-                return ListTile(
-                  // show the name of the trainer
-                  title: Text('Trainer: ${trainingSession.trainerId}'),
-                  subtitle: Text('Start Time: ${DateFormat('dd MMM yyyy HH:mm:ss').format(trainingSession.startTime)}\n' +
-                      'End Time: ${DateFormat('dd MMM yyyy HH:mm:ss').format(trainingSession.endTime)}'),
+                // Use a StreamBuilder to fetch and display trainer names
+                return StreamBuilder<Profile>(
+                  stream: DatabaseService(uid: trainingSession.traineeId, roleView: 'trainee').profile,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      Profile traineeProfile = snapshot.data!;
+                      return ListTile(
+                        title: Text('Trainee: ${traineeProfile.firstName} ${traineeProfile.lastName}'),
+                        subtitle: Text('${DateFormat('HH:mm').format(trainingSession.startTime)}' +
+                            ' -  ${DateFormat('HH:mm').format(trainingSession.endTime)}'),
+                      );
+                    } else {
+                      return ListTile(
+                        title: Text('Loading trainer name...'),
+                        subtitle: Text('Start Time: ${DateFormat('dd MMM yyyy HH:mm:ss').format(trainingSession.startTime)}\n' +
+                            'End Time: ${DateFormat('dd MMM yyyy HH:mm:ss').format(trainingSession.endTime)}'),
+                      );
+                    }
+                  },
                 );
               },
             ),
