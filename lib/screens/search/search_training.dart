@@ -5,7 +5,8 @@ import '../../models/app_user.dart';
 import '../../models/sport.dart';
 import '../../services/database.dart';
 import '../../models/trainer.dart';
-import '../../services/search_trainers.dart'; // Assuming TrainerProfile is the correct model
+import '../../services/search_trainers.dart';
+import '../../widgets/trainer_info.dart'; // Assuming TrainerProfile is the correct model
 
 List<String> specs = [
   'Karma',
@@ -224,7 +225,16 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                             icon: Icon(Icons.info),
                             color: Colors.red,
                             onPressed: () {
-                              // Handle the information button click here
+                              // Use Provider to access the TrainerProfile
+                              // Optionally, access other models if needed
+                              // AppUser user = Provider.of<AppUser>(context, listen: false);
+                              showDialog(
+                                context: context,
+                                builder: (context) => ChangeNotifierProvider<TrainerProfile>.value(
+                                  value: trainer, // Use the fetched trainerProfile
+                                  child: TrainerInfo(), // Your TrainerInfo dialog widget
+                                ),
+                              );
                             },
                           ),
                           SizedBox(width: 8),
