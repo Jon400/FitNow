@@ -3,22 +3,18 @@ import 'package:fit_now/screens/profiles/trainer_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import '../../models/profile.dart';
 import '../../models/training_session.dart';
+import '../../services/database.dart';
 import '../account/index.dart';
-
+import 'package:intl/intl.dart';
 
 class request_button extends StatefulWidget {
   @override
-  _request_button createState() => _request_button();
+  _RequestButtonState createState() => _RequestButtonState();
 }
 
-class _request_button extends State<request_button> {
-  int _selectedPage = 0;
-  final _pageOptions = [
-    TrainerProfileScreen(),
-    AccountScreen(),
-  ];
-
+class _RequestButtonState extends State<request_button> {
   @override
   Widget build(BuildContext context) {
     AppUser? appUser = Provider.of<AppUser?>(context);
@@ -33,6 +29,7 @@ class _request_button extends State<request_button> {
         stream: FirebaseFirestore.instance
             .collection('training_sessions')
             .where('trainerId', isEqualTo: appUser.uid)
+            .orderBy('startTime')
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -41,29 +38,41 @@ class _request_button extends State<request_button> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();
           }
+
           var documents = snapshot.data?.docs ?? [];
           return ListView.builder(
             itemCount: documents.length,
             itemBuilder: (context, index) {
-              var trainingSession = TrainingSession.fromFirestore(documents[index] as DocumentSnapshot);
-              return Card( // Utilisation d'un Card pour une meilleure présentation
-                child: ListTile(
-                  title: Text('${trainingSession.sport} - ${trainingSession.spec}'),
-                  subtitle: Text('Status: ${trainingSession.status} - Start: ${trainingSession.startTime} - End: ${trainingSession.endTime}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.check_circle, color: Colors.green),
-                        onPressed: () => _approveRequest(trainingSession.tid, context),
+              var doc = documents[index];
+              var trainingSession = TrainingSession.fromFirestore(doc as DocumentSnapshot);
+              return StreamBuilder<Profile>(
+                stream: DatabaseService(uid: trainingSession.traineeId, roleView: '').profile,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    Profile traineeProfile = snapshot.data!;
+                    return Card(
+                      child: ListTile(
+                        title: Text('From: ${traineeProfile.firstName} ${traineeProfile.lastName}'),
+                        subtitle: Text('${trainingSession.sport} - ${trainingSession.spec}\n${DateFormat('HH:mm').format(trainingSession.startTime)}-${DateFormat('HH:mm').format(trainingSession.endTime)}, ${DateFormat('dd MMM yyyy').format(trainingSession.endTime)}\nStatus : ${trainingSession.status}'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.check_circle, color: Colors.green),
+                              onPressed: () => _approveRequest(trainingSession.tid, context),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.cancel, color: Colors.red),
+                              onPressed: () => _cancelRequest(trainingSession.tid, context),
+                            ),
+                          ],
+                        ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.cancel, color: Colors.red),
-                        onPressed: () => _cancelRequest(trainingSession.tid, context),
-                      ),
-                    ],
-                  ),
-                ),
+                    );
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                },
               );
             },
           );
