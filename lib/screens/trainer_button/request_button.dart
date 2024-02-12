@@ -38,7 +38,7 @@ class _RequestButtonState extends State<request_button> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();
           }
-          // Les documents sont maintenant triés par startTime du plus ancien au plus récent
+
           var documents = snapshot.data?.docs ?? [];
           return ListView.builder(
             itemCount: documents.length,

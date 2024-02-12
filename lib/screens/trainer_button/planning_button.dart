@@ -6,7 +6,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../models/app_user.dart';
 import '../../models/profile.dart';
 import '../../models/training_session.dart';
-import '../../services/database.dart';  // Replace with your actual model file path
+import '../../services/database.dart';
 
 class planning_button extends StatefulWidget {
   @override
