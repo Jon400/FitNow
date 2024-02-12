@@ -74,24 +74,38 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
           ),
           Expanded(
             child: StreamBuilder<List<TimeRange>>(
-              key: UniqueKey(),
-              stream: trainerProfile!.getAvailableTimeSlots(DateTime.now().subtract(Duration(days: 7)), DateTime.now().add(Duration(days: 7))),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  List<TimeRange> availableTimeSlots = snapshot.data!;
-                  return SfCalendar(
-                    key: UniqueKey(),
-                    view: CalendarView.week,
-                    dataSource: MeetingDataSource(availableTimeSlots),
-                    onTap: (CalendarTapDetails details) {
-                      if (details.targetElement == CalendarElement.appointment) {
-                        final Appointment appointment = details.appointments!.first;
-                        showCustomTimePickerDialog(appointment.startTime, appointment.endTime);
+              stream: trainerProfile!.getAvailableTimeSlots(
+                  DateTime.now().subtract(Duration(days: 30)),
+                  DateTime.now().add(Duration(days: 30))
+              ),
+              builder: (context, availableSnapshot) {
+                if (availableSnapshot.hasData) {
+                  return StreamBuilder<List<TimeRange>>(
+                    stream: trainerProfile!.getBookedTimeSlots(
+                        DateTime.now().subtract(Duration(days: 30)),
+                        DateTime.now().add(Duration(days: 30))
+                    ),
+                    builder: (context, bookedSnapshot) {
+                      if (bookedSnapshot.hasData) {
+                        return SfCalendar(
+                          view: CalendarView.week,
+                          dataSource: MeetingDataSource(availableSnapshot.data!, bookedSnapshot.data!),
+                          onTap: (CalendarTapDetails details) {
+                            if (details.targetElement == CalendarElement.appointment) {
+                              final Appointment appointment = details.appointments!.first;
+                              showCustomTimePickerDialog(appointment.startTime, appointment.endTime);
+                            }
+                          },
+                        );
+                      } else if (bookedSnapshot.hasError) {
+                        return Text('Error fetching booked time slots: ${bookedSnapshot.error}');
+                      } else {
+                        return Center(child: CircularProgressIndicator());
                       }
                     },
                   );
-                } else if (snapshot.hasError) {
-                  return Text('Error fetching time slots: ${snapshot.error}');
+                } else if (availableSnapshot.hasError) {
+                  return Text('Error fetching available time slots: ${availableSnapshot.error}');
                 } else {
                   return Center(child: CircularProgressIndicator());
                 }
@@ -267,14 +281,32 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
 
 
 class MeetingDataSource extends CalendarDataSource {
-  MeetingDataSource(List<TimeRange> source) {
-    appointments = source.map((timeRange) => Appointment(
-      startTime: timeRange.startTime,
-      endTime: timeRange.endTime,
-      isAllDay: false,
-      subject: 'Available Slot',
-      color: Colors.green,
-    )).toList();
+  MeetingDataSource(List<TimeRange> availableSlots, List<TimeRange> bookedSlots) {
+    final List<Appointment> _appointments = [];
+
+    // Available slots - green
+    _appointments.addAll(availableSlots.map(
+          (timeRange) => Appointment(
+        startTime: timeRange.startTime,
+        endTime: timeRange.endTime,
+        isAllDay: false,
+        subject: 'Available Slot',
+        color: Colors.green,
+      ),
+    ));
+
+    // Booked slots - red
+    _appointments.addAll(bookedSlots.map(
+          (timeRange) => Appointment(
+        startTime: timeRange.startTime,
+        endTime: timeRange.endTime,
+        isAllDay: false,
+        subject: 'Booked Slot',
+        color: Colors.red,
+      ),
+    ));
+
+    appointments = _appointments;
   }
 }
 

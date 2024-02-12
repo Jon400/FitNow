@@ -46,6 +46,16 @@ class TrainerProfile extends Profile {
         .map((snapshot) => snapshot.docs.map((doc) => doc['name'] as String).toList());
   }
 
+  // get the booked time slots
+  Stream<List<TimeRange>> getBookedTimeSlots(DateTime startDate, DateTime endDate) {
+    return FirebaseFirestore.instance
+        .collection('training_sessions')
+        .where('trainerId', isEqualTo: pid)
+        .where('endTime', isGreaterThanOrEqualTo: startDate)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
+  }
+
   // this stream will return a list of time stamp (ranges) availability, datas and time
   // of the trainer according to the datesAvailability collection and remove
   // the duration of the training session that is already booked in
