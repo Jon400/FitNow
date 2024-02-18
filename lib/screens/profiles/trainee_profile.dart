@@ -16,7 +16,48 @@ class TraineeProfileScreen extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('My Training Sessions'),
+          title: StreamBuilder<Profile>(
+            stream: databaseService.profile,
+            builder: (context, profileSnapshot) {
+              if (profileSnapshot.connectionState == ConnectionState.waiting) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Loading...', style: TextStyle(fontSize: 20)), // Adjusted for consistency
+                  ],
+                );
+              } else if (profileSnapshot.hasError) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Error: ${profileSnapshot.error}', style: TextStyle(fontSize: 20)), // Adjusted for consistency
+                  ],
+                );
+              } else if (profileSnapshot.hasData) {
+                final profile = profileSnapshot.data!;
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // do bold
+                    Text('Hi ${profile.firstName} ${profile.lastName}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), // Adjusted for consistency
+                    // do a litle spacing
+                    SizedBox(height: 2),
+                  ],
+                );
+              } else {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('No Profile Data Available', style: TextStyle(fontSize: 16)), // Adjusted for consistency
+                  ],
+                );
+              }
+            },
+          ),
           bottom: TabBar(
             tabs: [
               Tab(text: 'Future Sessions'),
