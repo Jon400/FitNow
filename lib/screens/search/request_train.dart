@@ -324,6 +324,15 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
   DateTime? selectedStartTime;
   DateTime? selectedEndTime;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialTimeRange != null) {
+      selectedStartTime = widget.initialTimeRange!.start;
+      selectedEndTime = widget.initialTimeRange!.end;
+    }
+  }
+
   Future<void> selectTime(DateTime initialDate, bool isStartTime) async {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
@@ -356,11 +365,11 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
   bool isWithinAvailableSlot(DateTime time, bool isStartTime) {
     for (var slot in widget.availableTimeSlots) {
       if (isStartTime) {
-        if ((time.isAfter(slot.startTime) || time.isAtSameMomentAs(slot.startTime)) && (time.isBefore(slot.endTime) || time.isAtSameMomentAs(slot.endTime))) {
+        if (time.isAtSameMomentAs(slot.startTime) || (time.isAfter(slot.startTime) && time.isBefore(slot.endTime))) {
           return true;
         }
       } else {
-        if (time.isAfter(selectedStartTime ?? DateTime.now()) && time.isBefore(slot.endTime)) {
+        if (selectedStartTime != null && time.isAfter(selectedStartTime!) && time.isBefore(slot.endTime)) {
           return true;
         }
       }
@@ -373,21 +382,12 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          key: UniqueKey(),
           title: Text("Invalid Time"),
           content: Text("Selected time is outside of available slots."),
           actions: <Widget>[
             TextButton(
               child: Text('OK'),
-              onPressed: () {
-                // clear the selected time
-                setState(() {
-                  selectedStartTime = null;
-                  selectedEndTime = null;
-                });
-                // Close the dialog
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         );
@@ -398,7 +398,6 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      key: UniqueKey(),
       title: Text('Select Time Range'),
       content: SingleChildScrollView(
         child: Column(
@@ -407,28 +406,34 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
             return ListTile(
               title: Text('${timeSlot.startTime} - ${timeSlot.endTime}'),
               onTap: () {
-                setState(() {
-                  selectedStartTime = timeSlot.startTime;
-                  selectedEndTime = timeSlot.endTime;
-                });
-                selectTime(timeSlot.startTime, true).then((_) => selectTime(timeSlot.endTime, false));
+                selectTime(timeSlot.startTime, true).then((_) {
+                  // choose the text "choose end time" if the start time is selected
+
+                  if (selectedStartTime != null) {
+                    selectTime(timeSlot.endTime, false);
+                  }
+                }// else on the then block
+                );
               },
+              // show the slected time range if both start and end time are selected
+              subtitle: (selectedStartTime != null && selectedEndTime != null)
+                  ? Text('Selected: ${selectedStartTime} - ${selectedEndTime}')
+                  : null,
             );
           }).toList(),
         ),
       ),
       actions: <Widget>[
+        // show the slected time range if both start and end time are selected
         TextButton(
           child: Text('Cancel'),
           onPressed: () => Navigator.of(context).pop(),
         ),
         TextButton(
           child: Text('OK'),
-          onPressed: () {
-            if (selectedStartTime != null && selectedEndTime != null) {
-              Navigator.of(context). pop(DateTimeRange(start: selectedStartTime!, end: selectedEndTime!));
-            }
-          },
+          onPressed: (selectedStartTime != null && selectedEndTime != null) ? () {
+            Navigator.of(context).pop(DateTimeRange(start: selectedStartTime!, end: selectedEndTime!));
+          } : null,
         ),
       ],
     );
