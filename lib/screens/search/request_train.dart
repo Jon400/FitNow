@@ -91,6 +91,9 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
                           onTap: (CalendarTapDetails details) {
                             if (details.targetElement == CalendarElement.appointment) {
                               final Appointment appointment = details.appointments!.first;
+                              if (appointment.subject == 'Booked Slot') {
+                                return;
+                              }
                               showCustomTimePickerDialog(appointment.startTime, appointment.endTime);
                             }
                           },
@@ -288,6 +291,7 @@ class MeetingDataSource extends CalendarDataSource {
     ));
 
     // Booked slots - red
+    // do it unclickable
     _appointments.addAll(bookedSlots.map(
           (timeRange) => Appointment(
         startTime: timeRange.startTime,
