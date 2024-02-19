@@ -4,6 +4,8 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../../models/app_user.dart';
 import '../../models/trainer.dart'; // Ensure this path is correct
 import '../../models/training_session.dart'; // Ensure this path is correct
+import 'package:intl/intl.dart';
+
 
 class RequestTrainingScreen extends StatefulWidget {
   @override
@@ -136,8 +138,8 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
             padding: EdgeInsets.all(16.0),
             child: selectedTimeRange != null
                 ? Text(
-              'Selected Time Range: ${selectedTimeRange!.start
-                  .toLocal()} to ${selectedTimeRange!.end.toLocal()}',
+              // do it in friendly format uusing intl
+              'Selected Time Range: ${DateFormat('dd MMM yyyy, hh:mm a').format(selectedTimeRange!.start)} - ${DateFormat('hh:mm a').format(selectedTimeRange!.end)}',
               style: TextStyle(fontSize: 18),
             )
                 : Text(
@@ -400,8 +402,8 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
           mainAxisSize: MainAxisSize.min,
           children: widget.availableTimeSlots.map((timeSlot) {
             return ListTile(
-              title: Text('${timeSlot.startTime} - ${timeSlot.endTime}'),
-              onTap: () {
+              title: Text('Start Time: ${DateFormat('dd MMM yyyy, hh:mm a').format(timeSlot.startTime)} - ${DateFormat('hh:mm a').format(timeSlot.endTime)}'),
+                  onTap: () {
                 selectTime(timeSlot.startTime, true).then((_) {
                   // choose the text "choose end time" if the start time is selected
 
@@ -413,7 +415,7 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
               },
               // show the slected time range if both start and end time are selected
               subtitle: (selectedStartTime != null && selectedEndTime != null)
-                  ? Text('Selected: ${selectedStartTime} - ${selectedEndTime}')
+                  ? Text('Selected: ${DateFormat('dd MMM yyyy, hh:mm a').format(selectedStartTime!)} - ${DateFormat('hh:mm a').format(selectedEndTime!)}')
                   : null,
             );
           }).toList(),
