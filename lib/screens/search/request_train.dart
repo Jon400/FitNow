@@ -43,7 +43,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
       context: context,
       builder: (context) =>
           CustomTimePickerDialog(
-            key: UniqueKey(),
             availableTimeSlots: [
               TimeRange(startTime: startTime, endTime: endTime)
             ],
@@ -61,7 +60,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: UniqueKey(),
       appBar: AppBar(
         title: Text('Select Training Time'),
       ),
@@ -115,7 +113,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
           if (selectedTimeRange != null) Padding(
             padding: EdgeInsets.all(16.0),
             child: DropdownButton<String>(
-              key: UniqueKey(),
               value: selectedSpecialization,
               hint: Text("Select Specialization"),
               onChanged: (String? newValue) {
@@ -126,7 +123,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
               items: specializations.map<DropdownMenuItem<String>>((
                   String value) {
                 return DropdownMenuItem<String>(
-                  key: UniqueKey(),
                   value: value,
                   child: Text(value),
                 );
@@ -153,7 +149,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      key: UniqueKey(),
                       title: Text("Error"),
                       content: Text("Please select a time range."),
                       actions: <Widget>[
@@ -176,7 +171,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      key: UniqueKey(),
                       title: Text("Error"),
                       content: Text("Please select a specialization."),
                       actions: <Widget>[
@@ -245,7 +239,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            key: UniqueKey(),
             title: Text("Success"),
             content: Text("Request sent successfully."),
             actions: <Widget>[
@@ -263,7 +256,6 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            key: UniqueKey(),
             title: Text("Error"),
             content: Text("Failed to send the request.\n" + e.toString()),
             actions: <Widget>[
