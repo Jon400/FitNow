@@ -7,6 +7,7 @@ import '../../services/database.dart';
 import '../../models/trainer.dart';
 import '../../services/search_trainers.dart';
 import '../../widgets/trainer_info.dart'; // Assuming TrainerProfile is the correct model
+import 'package:intl/intl.dart';
 
 List<String> specs = [
   'Karma',
@@ -112,12 +113,21 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
       body: Column(
         children: [
           ListTile(
-            title: Text(startDate == null ? 'Pick start date and time' : "${startDate!.toLocal()} at $startTime"),
-            trailing: Icon(Icons.calendar_today),
-            onTap: pickStartDateTime,
+            // change the format
+            title: Text(
+              startDate == null
+                  ? 'Pick start date and time'
+                  : "${DateFormat('MMM dd yyyy').format(startDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(startTime!.format(context)))}",
+            ),
+          trailing: Icon(Icons.calendar_today),
+          onTap: pickStartDateTime,
           ),
           ListTile(
-            title: Text(endDate == null ? 'Pick end date and time' : "${endDate!.toLocal()} at $endTime"),
+            title: Text(
+              endDate == null
+                  ? 'Pick start date and time'
+                  : "${DateFormat('MMM dd yyyy').format(endDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(endTime!.format(context)))}",
+            ),
             trailing: Icon(Icons.calendar_today),
             onTap: pickEndDateTime,
           ),
