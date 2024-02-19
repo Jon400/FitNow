@@ -130,6 +130,18 @@ class TrainingSession {
         .map((DocumentSnapshot doc) => Profile.fromFirestore(doc));
   }
 
+  // stream to get last update according to the last request
+  Stream<Request> getLatestRequest() {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    return firestore
+        .collection('training_sessions')
+        .doc(tid)
+        .collection('requests')
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .snapshots()
+        .map((snapshot) => Request.fromFirestore(snapshot.docs.first));
+  }
 
   // approve training session
    Future<void> approveTrainingSession() async {

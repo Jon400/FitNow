@@ -45,7 +45,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           } else if (profileSnapshot.hasData) {
             final profile = profileSnapshot.data!;
             return StreamBuilder<List<TrainingSession>>(
-              stream: profile.trainingSessions,
+              stream: profile.getSortedTrainingSessions(),
               builder: (context, sessionSnapshot) {
                 if (sessionSnapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
