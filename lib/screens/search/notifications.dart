@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../models/app_user.dart';
 import '../../models/profile.dart';
 import '../../models/training_session.dart';
@@ -67,33 +68,46 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           // Parse the trainer's profile data
                           var trainerData = trainerSnapshot.data!.data() as Map<String, dynamic>;
                           String trainerName = "${trainerData['firstName']} ${trainerData['lastName']}";
-                          return ExpansionTile(
-                            title: Text('Session with Trainer $trainerName in ${session.sport}'),
-                            subtitle: Text('${session.startTime} - ${session.endTime}'),
-                            children: [
-                              StreamBuilder<List<Request>>(
-                                stream: session.streamRequests(),
-                                builder: (context, requestSnapshot) {
-                                  if (requestSnapshot.connectionState == ConnectionState.waiting) {
-                                    return const CircularProgressIndicator();
-                                  } else if (requestSnapshot.hasError) {
-                                    return Text('Error: ${requestSnapshot.error}');
-                                  } else if (requestSnapshot.hasData && requestSnapshot.data!.isNotEmpty) {
-                                    final requests = requestSnapshot.data!;
-                                    requests.sort((a, b) => b.timestamp.compareTo(a.timestamp)); // Sorting by timestamp
-                                    return Column(
-                                      children: requests.map((request) => ListTile(
-                                        title: Text('Request to ${request.status}'),
-                                        subtitle: Text('${request.timestamp}'),
-                                      )).toList(),
-                                    );
-                                  }
-                                  return const ListTile(
-                                    title: Text('No requests found for this session'),
-                                  );
-                                },
+
+                          // Determine background color based on index
+                          Color backgroundColor = index.isEven ? Colors.grey[200]! : Colors.white;
+
+                          return Container(
+                            color: backgroundColor, // Apply background color here
+                            child: ExpansionTile(
+                              title: Text('Session with Trainer $trainerName in ${session.sport}'),
+                              // Format the date and time more pretty
+                              subtitle: Text(
+                                'Start Time: ${DateFormat('dd MMM yyyy, hh:mm a').format(session.startTime)} - ${DateFormat('hh:mm a').format(session.endTime)}',
                               ),
-                            ],
+                              children: [
+                                StreamBuilder<List<Request>>(
+                                  stream: session.streamRequests(),
+                                  builder: (context, requestSnapshot) {
+                                    if (requestSnapshot.connectionState == ConnectionState.waiting) {
+                                      return const CircularProgressIndicator();
+                                    } else if (requestSnapshot.hasError) {
+                                      return Text('Error: ${requestSnapshot.error}');
+                                    } else if (requestSnapshot.hasData && requestSnapshot.data!.isNotEmpty) {
+                                      final requests = requestSnapshot.data!;
+                                      requests.sort((a, b) => b.timestamp.compareTo(a.timestamp)); // Sorting by timestamp
+                                      return Column(
+                                        children: requests.map((request) => ListTile(
+                                          title: Text('Request to ${request.status}'),
+                                          // do the formatting of the timestamp here more pretty
+                                          subtitle: Text(
+                                            'Timestamp: ${DateFormat('dd MMM yyyy, hh:mm a').format(request.timestamp)}',
+                                          ),
+                                        )).toList(),
+                                      );
+                                    }
+                                    return const ListTile(
+                                      title: Text('No requests found for this session'),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           );
                         },
                       );
