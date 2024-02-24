@@ -15,7 +15,7 @@ We are using Firebase for the backend of the application.
 2. Fetch latest source code from master branch.
 
 ```
-git clone https://github.com/aradbm/ibet.git
+https://github.com/Jon400/FitNow.git
 ```
 
 3. Run the app with Android Studio or VS Code. Or the command line:
