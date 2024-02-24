@@ -5,6 +5,7 @@ class Button extends StatelessWidget {
   final String text;
   final Color color;
 
+
   const Button({
     Key? key,
     required this.onTap,
@@ -29,7 +30,7 @@ class Button extends StatelessWidget {
             text,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 20,
             ),
           ),
         ),

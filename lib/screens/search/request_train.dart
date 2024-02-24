@@ -62,9 +62,12 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text('Select Training Time'),
-      ),
+        backgroundColor: Color(0xFFE2C799),
+        title: const Text('Select Training Time', style: TextStyle(color: Colors.black , fontWeight: FontWeight.bold),),
+
+    ),
       body: Column(
         children: [
           Text(

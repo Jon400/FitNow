@@ -94,8 +94,7 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
           ElevatedButton(
             onPressed: _addTimeRange,
             style: ElevatedButton.styleFrom(
-              primary:  Color(0xFF92A3FD), // Change button's background color
-              onPrimary: Colors.white, // Change text color
+              foregroundColor: Colors.white, backgroundColor: Color(0xFF92A3FD), // Change text color
 
             ),
             child: Text("Select Time Range"), // Change button's text

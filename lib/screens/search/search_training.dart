@@ -107,30 +107,47 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
+
       appBar: AppBar(
-        title: Text('Search Training Sessions'),
+        backgroundColor: Color(0xFFE2C799),
+        title: Text('Search Training Sessions', style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold)),
+
       ),
       body: Column(
         children: [
           ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.blueGrey,
+              child: Icon(Icons.calendar_today),
+            ),
+
             // change the format
             title: Text(
               startDate == null
                   ? 'Pick start date and time'
-                  : "${DateFormat('MMM dd yyyy').format(startDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(startTime!.format(context)))}",
+                  : "${DateFormat('MMM dd yyyy').format(startDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(startTime!.format(context)))}",style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold)
             ),
-          trailing: Icon(Icons.calendar_today),
+
+
           onTap: pickStartDateTime,
           ),
           ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.blueGrey,
+              child: Icon(Icons.calendar_today),
+            ),
             title: Text(
               endDate == null
-                  ? 'Pick start date and time'
-                  : "${DateFormat('MMM dd yyyy').format(endDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(endTime!.format(context)))}",
+                  ? 'Pick end date and time'
+                  : "${DateFormat('MMM dd yyyy').format(endDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(endTime!.format(context)))}",style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold)
             ),
-            trailing: Icon(Icons.calendar_today),
+
             onTap: pickEndDateTime,
           ),
+          SizedBox(height: 4),
+          Text('Select Sport and Spec:',style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+          SizedBox(height: 4),
           StreamBuilder<List<Sport>>(
             stream: streamSports,
             builder: (context, snapshot) {
@@ -155,6 +172,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                   hint: Text("No sports available"),
                 );
               }
+
               List<Sport> sportsList = snapshot.data!;
               return DropdownButton<String>(
                 value: selectedSport,
@@ -170,11 +188,17 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                   return DropdownMenuItem<String>(
                     value: sport.name,
                     child: Text(sport.name),
+
                   );
                 }).toList(),
+
+                style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold, fontSize: 16),
+
               );
             },
           ),
+
+
           DropdownButton<String>(
             value: selectedSpec, // Make sure selectedSpec contains a valid value from specs
             onChanged: (String? newValue) {
@@ -189,6 +213,10 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                 child: Text(value),
               );
             }).toList(),
+
+            style: TextStyle(color: Colors.black , fontSize: 16),
+
+
           ),
           Expanded(
             child: StreamBuilder<List<TrainerProfile>>(
@@ -201,7 +229,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('No trainers found'));
+                  return Center(child: Text('No trainers found', style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold, fontSize: 20)));
                 }
 
                 List<TrainerProfile> trainers = snapshot.data!;
@@ -210,7 +238,21 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                   itemCount: trainers.length,
                   itemBuilder: (context, index) {
                     final trainer = trainers[index];
-                    return ListTile(
+                    return Container(
+                        margin: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0), // Add some spacing around each list item
+                        decoration: BoxDecoration(
+                          color: Colors.white, // Your desired background color for list items
+                          borderRadius: BorderRadius.circular(8.0), // Optional: if you want rounded corners
+                          boxShadow: [ // Optional: if you want to add shadow for some depth
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                    child:ListTile(
                       title: Text(trainer.firstName + ' ' + trainer.lastName),
                       subtitle: StreamBuilder<List<String>>(
                         stream: trainer.getSpecializations(),
@@ -269,13 +311,14 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              primary: Colors.blue,
+                              backgroundColor: Colors.blueGrey,
                               textStyle: TextStyle(color: Colors.white),
                             ),
-                            child: Text('Request'),
+                            child: Text('Request', style: TextStyle(color: Colors.white)),
                           ),
                         ],
                       ),
+                    ),
                     );
                   },
                 );

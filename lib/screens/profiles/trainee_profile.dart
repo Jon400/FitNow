@@ -15,12 +15,13 @@ class TraineeProfileScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        backgroundColor: Colors.grey[200],
         appBar: AppBar(
           title: StreamBuilder<Profile>(
             stream: databaseService.profile,
             builder: (context, profileSnapshot) {
               if (profileSnapshot.connectionState == ConnectionState.waiting) {
-                return Column(
+                return Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -28,7 +29,7 @@ class TraineeProfileScreen extends StatelessWidget {
                   ],
                 );
               } else if (profileSnapshot.hasError) {
-                return Column(
+                return Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -37,18 +38,21 @@ class TraineeProfileScreen extends StatelessWidget {
                 );
               } else if (profileSnapshot.hasData) {
                 final profile = profileSnapshot.data!;
-                return Column(
+                return Container(
+                  color: Color(0xFFE2C799),
+                  child:Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // do bold
-                    Text('Hi ${profile.firstName} ${profile.lastName}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), // Adjusted for consistency
+                    Text('Hi ${profile.firstName} ${profile.lastName}', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)), // Adjusted for consistency
                     // do a litle spacing
-                    SizedBox(height: 2),
+                    SizedBox(height: 3),
                   ],
+                ),
                 );
               } else {
-                return Column(
+                return Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -58,9 +62,14 @@ class TraineeProfileScreen extends StatelessWidget {
               }
             },
           ),
+
           bottom: TabBar(
+            indicatorColor:Color(0xFF86A7FC),
+            labelColor: Color(0xFF86A7FC),
+
+            unselectedLabelColor: Colors.black,
             tabs: [
-              Tab(text: 'Future Sessions'),
+              Tab(text: 'Future Sessions' ),
               Tab(text: 'Past Sessions'),
             ],
           ),

@@ -59,8 +59,11 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
     final String currentUserId = _auth.currentUser!.uid;
 
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text('My Profile'),
+        title: Text('Home'),
+        backgroundColor: Color(0xFFE2C799),
+
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.edit),
@@ -97,7 +100,10 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                       padding: const EdgeInsets.all(8.0),
                       child: Text('Description: ${trainerData.description}', style: TextStyle(fontSize: 16), textAlign: TextAlign.center),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 120),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
                     ElevatedButton(onPressed: () {Navigator.push(
                       context,
                       PageRouteBuilder(pageBuilder: (_, __, ___) => planning_button()),
@@ -109,11 +115,13 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                     ElevatedButton(onPressed: () {Navigator.push(
                       context,
                       PageRouteBuilder(pageBuilder: (_, __, ___) => ActivityTimeButton()),
-                    );}, child: Text("Activity Time")),
+                    );}, child: Text("Work Time")),
+                    ],),
                   ],
                 ),
               ),
             );
+
           } else {
             return Center(child: CircularProgressIndicator());
           }

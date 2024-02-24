@@ -33,8 +33,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final DatabaseService databaseService = DatabaseService(uid: user.uid, roleView: 'trainee');
 
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Color(0xFFE2C799) ,
       ),
       body: StreamBuilder<Profile>(
         stream: databaseService.profile,
@@ -70,10 +72,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           String trainerName = "${trainerData['firstName']} ${trainerData['lastName']}";
 
                           // Determine background color based on index
-                          Color backgroundColor = index.isEven ? Colors.grey[200]! : Colors.white;
+                          Color backgroundColor = index.isEven ? Colors.cyan[200]! : Colors.blue[200]!;
 
                           return Container(
-                            color: backgroundColor, // Apply background color here
+                             margin: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: backgroundColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+
+
+
+
+
                             child: ExpansionTile(
                               title: Text('Session with Trainer $trainerName in ${session.sport}'),
                               // Format the date and time more pretty

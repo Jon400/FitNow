@@ -136,7 +136,7 @@ class _SignInState extends State<SignIn> {
                             style: TextStyle(color: Colors.black),
                           ),
                           style: ElevatedButton.styleFrom(
-                            primary: Color(0xFF86A7FC),
+                            backgroundColor: Color(0xFF86A7FC),
                           ),
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {

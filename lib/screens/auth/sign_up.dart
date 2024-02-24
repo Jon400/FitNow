@@ -187,7 +187,7 @@ class _SignUpState extends State<SignUp> {
                                 style: TextStyle(color: Colors.black),
                               ),
                             style: ElevatedButton.styleFrom(
-                                primary:  Color(0xFF86A7FC),
+                                backgroundColor: Color(0xFF86A7FC),
                               ),
                              onPressed: () async {
                                 if (_formKey.currentState!.validate()) {

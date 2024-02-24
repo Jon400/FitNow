@@ -22,35 +22,55 @@ class _TraineeWrapperState extends State<TraineeWrapper> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+     backgroundColor: Colors.blueGrey,
       body: _pageOptions[_selectedPage],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedPage,
-        showUnselectedLabels: false,
-        onTap: (int index) {
-          setState(() {
-            _selectedPage = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.verified_user),
-            label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search_rounded),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem(
-            // for notifications
+      bottomNavigationBar: Container( // Added container widget
+        margin: EdgeInsets.symmetric(horizontal: 16), // Added horizontal margin
+        padding: EdgeInsets.symmetric(horizontal: 10), // Added horizontal padding
+        decoration: const BoxDecoration( // Added decoration
+          color: Colors.black, // Set background color to black
+          borderRadius: BorderRadius.all(Radius.circular(25)), // Set border radius
+
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedPage,
+          backgroundColor: Colors.transparent, // Changed background color to transparent
+          selectedItemColor: Colors.blue, // Selected item color set to blue
+          unselectedItemColor: Colors.white54, // Unselected item color set to white54 for visibility
+          selectedIconTheme: IconThemeData(color: Colors.blue), // Selected icon color set to blue
+          showSelectedLabels: true, // Show label for selected item
+          showUnselectedLabels: false, // Hide label for unselected item
+          onTap: (int index) {
+            setState(() {
+              _selectedPage = index;
+            });
+          },
+          type: BottomNavigationBarType.fixed,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+              activeIcon: Icon(Icons.home, color: Colors.blue), // Active icon color set to blue
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search_rounded),
+              label: 'Search',
+              activeIcon: Icon(Icons.search_rounded, color: Colors.blue), // Active icon color set to blue
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.notifications),
               label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_box),
-            label: 'Home',
-          ),
-        ],
+              activeIcon: Icon(Icons.notifications, color: Colors.blue), // Active icon color set to blue
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_box),
+              label: 'Account',
+              activeIcon: Icon(Icons.account_box, color: Colors.blue), // Active icon color set to blue
+            ),
+
+          ],
+
+        ),
       ),
     );
   }
