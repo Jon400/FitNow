@@ -82,11 +82,13 @@ class _PlanningScreenState extends State<planning_button> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text('My Planning'),
+        title: const Text('My Planning', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor:Colors.amber,
       ),
       body: Column(
         children: [

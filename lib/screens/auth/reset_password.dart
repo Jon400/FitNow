@@ -107,7 +107,7 @@ class _ResetPasswordState extends State<ResetPassword> {
 
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF86A7FC),
+                            backgroundColor: Colors.lightBlue[900],
                           ),
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {

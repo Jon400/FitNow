@@ -15,8 +15,9 @@ class TraineeProfileScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: Colors.grey[900],
         appBar: AppBar(
+          backgroundColor: Colors.grey[500],
           title: StreamBuilder<Profile>(
             stream: databaseService.profile,
             builder: (context, profileSnapshot) {
@@ -39,7 +40,7 @@ class TraineeProfileScreen extends StatelessWidget {
               } else if (profileSnapshot.hasData) {
                 final profile = profileSnapshot.data!;
                 return Container(
-                  color: Color(0xFFE2C799),
+                  color: Colors.amber,
                   child:Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,8 +65,8 @@ class TraineeProfileScreen extends StatelessWidget {
           ),
 
           bottom: TabBar(
-            indicatorColor:Color(0xFF86A7FC),
-            labelColor: Color(0xFF86A7FC),
+            indicatorColor:Colors.lightBlue[900],
+            labelColor: Colors.lightBlue[900],
 
             unselectedLabelColor: Colors.black,
             tabs: [
@@ -108,7 +109,7 @@ class TraineeProfileScreen extends StatelessWidget {
           return Center(child: Text('Error: ${sessionSnapshot.error}'));
         } else if (sessionSnapshot.hasData) {
           if (sessionSnapshot.data!.isEmpty) {
-            return Center(child: Text('No Training Sessions Found'));
+            return Center(child: Text('No Training Sessions Found', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold , color: Colors.white)));
           }
           final now = DateTime.now();
           final sessions = sessionSnapshot.data!.where((session) {

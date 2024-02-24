@@ -107,10 +107,10 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.grey[900],
 
       appBar: AppBar(
-        backgroundColor: Color(0xFFE2C799),
+        backgroundColor:Colors.amber,
         title: Text('Search Training Sessions', style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold)),
 
       ),
@@ -118,7 +118,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: Colors.blueGrey,
+              backgroundColor:  Color(0xFF86A7FC),
               child: Icon(Icons.calendar_today),
             ),
 
@@ -126,7 +126,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
             title: Text(
               startDate == null
                   ? 'Pick start date and time'
-                  : "${DateFormat('MMM dd yyyy').format(startDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(startTime!.format(context)))}",style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold)
+                  : "${DateFormat('MMM dd yyyy').format(startDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(startTime!.format(context)))}",style: TextStyle(color: Colors.white ,fontWeight: FontWeight.bold)
             ),
 
 
@@ -134,19 +134,19 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
           ),
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: Colors.blueGrey,
+              backgroundColor:  Color(0xFF86A7FC),
               child: Icon(Icons.calendar_today),
             ),
             title: Text(
               endDate == null
                   ? 'Pick end date and time'
-                  : "${DateFormat('MMM dd yyyy').format(endDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(endTime!.format(context)))}",style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold)
+                  : "${DateFormat('MMM dd yyyy').format(endDate!.toLocal())} ${DateFormat('hh:mm a').format(DateFormat('hh:mm').parse(endTime!.format(context)))}",style: TextStyle(color: Colors.white ,fontWeight: FontWeight.bold)
             ),
 
             onTap: pickEndDateTime,
           ),
           SizedBox(height: 4),
-          Text('Select Sport and Spec:',style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+          Text('Select Sport and Spec:',style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
           SizedBox(height: 4),
           StreamBuilder<List<Sport>>(
             stream: streamSports,
@@ -192,7 +192,8 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                   );
                 }).toList(),
 
-                style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold, fontSize: 16),
+                dropdownColor: Colors.grey[900],
 
               );
             },
@@ -214,7 +215,8 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
               );
             }).toList(),
 
-            style: TextStyle(color: Colors.black , fontSize: 16),
+            style: TextStyle(color: Colors. white, fontSize: 16),
+            dropdownColor: Colors.grey[900],
 
 
           ),
@@ -229,7 +231,7 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('No trainers found', style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold, fontSize: 20)));
+                  return Center(child: Text('No trainers found', style: TextStyle(color: Colors.white ,fontWeight: FontWeight.bold, fontSize: 20)));
                 }
 
                 List<TrainerProfile> trainers = snapshot.data!;
@@ -311,10 +313,11 @@ class _TraineeSearchPageState extends State<TraineeSearchPage> {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueGrey,
+                              backgroundColor:Colors.amber,
+
                               textStyle: TextStyle(color: Colors.white),
                             ),
-                            child: Text('Request', style: TextStyle(color: Colors.white)),
+                            child: Text('Request', style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),

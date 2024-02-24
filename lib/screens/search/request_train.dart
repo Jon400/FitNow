@@ -62,9 +62,9 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.grey[400],
       appBar: AppBar(
-        backgroundColor: Color(0xFFE2C799),
+        backgroundColor: Colors.amber,
         title: const Text('Select Training Time', style: TextStyle(color: Colors.black , fontWeight: FontWeight.bold),),
 
     ),
@@ -205,9 +205,15 @@ class _RequestTrainingScreenState extends State<RequestTrainingScreen> {
               // call a function to create the training session  void submitTrainingSession()
               submitTrainingSession();
             },
-            child: Text('Submit'),
+            child: Text('Submit', style: TextStyle(fontSize: 16)),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.black, backgroundColor: Colors.amber,
+              elevation: 2,
+            )
+
           ),
         ],
+
       ),
     );
   }

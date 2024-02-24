@@ -58,7 +58,7 @@ class AccountScreen extends StatelessWidget {
                 Provider.of<AuthService>(context, listen: false).signOut();
               },
               text: user == null ? 'Sign In or Sign Up' : 'Sign Out',
-              color: Color(0xFF86A7FC),
+              color: Colors.amber,
             ),
           ],
         ),

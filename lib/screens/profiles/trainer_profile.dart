@@ -59,10 +59,10 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
     final String currentUserId = _auth.currentUser!.uid;
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text('Home'),
-        backgroundColor: Color(0xFFE2C799),
+        title: const Text('Home' , style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),),
+        backgroundColor:Colors.amber,
 
         actions: <Widget>[
           IconButton(
@@ -92,13 +92,13 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                       radius: 140,
                     ),
                     SizedBox(height: 20),
-                    Text('First Name: ${trainerData.firstName}', style: TextStyle(fontSize: 16)),
-                    Text('Last Name: ${trainerData.lastName}', style: TextStyle(fontSize: 16)),
-                    Text('Sport: ${trainerData.sport}', style: TextStyle(fontSize: 16)),
+                    Text('First Name: ${trainerData.firstName}', style: TextStyle(fontSize: 16,color: Colors.white)),
+                    Text('Last Name: ${trainerData.lastName}', style: TextStyle(fontSize: 16,color: Colors.white)),
+                    Text('Sport: ${trainerData.sport}', style: TextStyle(fontSize: 16,color: Colors.white)),
                     buildSpecializationSection(trainerData), // Specialization section
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('Description: ${trainerData.description}', style: TextStyle(fontSize: 16), textAlign: TextAlign.center),
+                      child: Text('Description: ${trainerData.description}', style: TextStyle(fontSize: 16, color: Colors.white), textAlign: TextAlign.center),
                     ),
                     SizedBox(height: 120),
                     Row(
@@ -107,15 +107,22 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                     ElevatedButton(onPressed: () {Navigator.push(
                       context,
                       PageRouteBuilder(pageBuilder: (_, __, ___) => planning_button()),
-                    );}, child: Text("Planning")),
+                    );}, child: Text("Planning", style: TextStyle(color: Colors.black),) ,style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue[900],
+                    ),),
+
                     ElevatedButton(onPressed: () {Navigator.push(
                       context,
                       PageRouteBuilder(pageBuilder: (_, __, ___) =>request_button()),
-                    );}, child: Text("Requests")),
+                    );}, child: Text("Requests", style: TextStyle(color: Colors.black),) ,style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue[900]
+                    ),),
                     ElevatedButton(onPressed: () {Navigator.push(
                       context,
                       PageRouteBuilder(pageBuilder: (_, __, ___) => ActivityTimeButton()),
-                    );}, child: Text("Work Time")),
+                    );}, child: Text("Activity Time",style: TextStyle(color: Colors.black),) ,style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlue[900]
+                    ),),
                     ],),
                   ],
                 ),
@@ -137,7 +144,7 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
         if (specSnapshot.hasData) {
           selectedSpecs = specSnapshot.data!;
         }
-        return Text('Specializations: ${selectedSpecs.join(", ")}', style: TextStyle(fontSize: 16));
+        return Text('Specializations: ${selectedSpecs.join(", ")}', style: TextStyle(fontSize: 16, color: Colors.white));
       },
     );
   }

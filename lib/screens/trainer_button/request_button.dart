@@ -22,8 +22,10 @@ class _RequestButtonState extends State<request_button> {
       return Center(child: Text('No users logged in'));
     }
     return Scaffold(
+      backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text('Requests from trainees'),
+        title: Text('Requests from trainees', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor:Colors.amber,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance

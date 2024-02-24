@@ -45,8 +45,10 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[400],
       appBar: AppBar(
-        title: Text('Calendar Screen'),
+        title: const Text('Activity Time', style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold),),
+        backgroundColor: Colors.amber,
       ),
       body: Column(
         children: [
@@ -94,7 +96,7 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
           ElevatedButton(
             onPressed: _addTimeRange,
             style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white, backgroundColor: Color(0xFF92A3FD), // Change text color
+              foregroundColor: Colors.white, backgroundColor: Colors.lightBlue[900], // Change text color
 
             ),
             child: Text("Select Time Range"), // Change button's text

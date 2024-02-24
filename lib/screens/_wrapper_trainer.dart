@@ -1,11 +1,7 @@
 import 'package:fit_now/screens/profiles/trainer_profile.dart';
-import 'package:fit_now/screens/trainer_button/planning_button.dart';
 import 'package:flutter/material.dart';
-
 import 'account/index.dart';
-import 'profiles/trainee_profile.dart';
-import 'trainer_button/ActivityTime_button.dart';
-import 'trainer_button/request_button.dart';
+
 
 class TrainerWrapper extends StatefulWidget {
   @override
@@ -16,9 +12,7 @@ class _TrainerWrapperState extends State<TrainerWrapper> {
   int _selectedPage = 0;
   final _pageOptions = [
     TrainerProfileScreen(),
-    ActivityTimeButton(),
-    planning_button(),
-    request_button(),
+
     AccountScreen(),
 
   ];
@@ -26,16 +20,12 @@ class _TrainerWrapperState extends State<TrainerWrapper> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blueGrey,
+      backgroundColor: Colors.black,
       body: _pageOptions[_selectedPage],
       bottomNavigationBar: Container( // Added container widget
-        margin: EdgeInsets.symmetric(horizontal: 10), // Added horizontal margin
-        padding: EdgeInsets.symmetric(horizontal: 10), // Added horizontal padding
-        decoration: const BoxDecoration( // Added decoration
-          color: Colors.black, // Set background color to black
-          borderRadius: BorderRadius.all(Radius.circular(25)), // Set border radius
+        //margin: EdgeInsets.symmetric(horizontal: 10), // Added horizontal margin
+        //padding: EdgeInsets.symmetric(horizontal: 10), // Added horizontal padding
 
-        ),
         child: BottomNavigationBar(
           currentIndex: _selectedPage,
           backgroundColor: Colors.transparent, // Changed background color to transparent
@@ -55,22 +45,6 @@ class _TrainerWrapperState extends State<TrainerWrapper> {
               icon: Icon(Icons.home),
               label: 'Home',
               activeIcon: Icon(Icons.home, color: Colors.blue), // Active icon color set to blue
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.access_time),
-              label: 'Work-Time',
-              activeIcon: Icon(Icons.access_time, color: Colors.blue), // Active icon color set to blue
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today),
-              label: 'Planning',
-              activeIcon: Icon(Icons.calendar_today, color: Colors.blue), // Active icon color set to blue
-            ),
-
-            BottomNavigationBarItem(
-              icon: Icon(Icons.request_page),
-              label: 'Requests',
-              activeIcon: Icon(Icons.request_page, color: Colors.blue), // Active icon color set to blue
             ),
 
           BottomNavigationBarItem(
