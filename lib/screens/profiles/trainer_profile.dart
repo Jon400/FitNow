@@ -9,6 +9,7 @@ import '../../services/database.dart';
 import '../trainer_button/ActivityTime_button.dart';
 import '../trainer_button/request_button.dart';
 import '../trainer_button/planning_button.dart';
+
 class TrainerProfileScreen extends StatefulWidget {
   @override
   _TrainerProfileScreenState createState() => _TrainerProfileScreenState();
@@ -61,9 +62,11 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: const Text('Home' , style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),),
-        backgroundColor:Colors.amber,
-
+        title: const Text(
+          'Home',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.amber,
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.edit),
@@ -72,7 +75,8 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
         ],
       ),
       body: StreamBuilder<TrainerProfile>(
-        stream: DatabaseService(uid: currentUserId, roleView: '').getTrainerProfile(),
+        stream: DatabaseService(uid: currentUserId, roleView: '')
+            .getTrainerProfile(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             TrainerProfile trainerData = snapshot.data!;
@@ -92,43 +96,81 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                       radius: 140,
                     ),
                     SizedBox(height: 20),
-                    Text('First Name: ${trainerData.firstName}', style: TextStyle(fontSize: 16,color: Colors.white)),
-                    Text('Last Name: ${trainerData.lastName}', style: TextStyle(fontSize: 16,color: Colors.white)),
-                    Text('Sport: ${trainerData.sport}', style: TextStyle(fontSize: 16,color: Colors.white)),
-                    buildSpecializationSection(trainerData), // Specialization section
+                    Text('First Name: ${trainerData.firstName}',
+                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                    Text('Last Name: ${trainerData.lastName}',
+                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                    Text('Sport: ${trainerData.sport}',
+                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                    buildSpecializationSection(
+                        trainerData), // Specialization section
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('Description: ${trainerData.description}', style: TextStyle(fontSize: 16, color: Colors.white), textAlign: TextAlign.center),
+                      child: Text('Description: ${trainerData.description}',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                          textAlign: TextAlign.center),
                     ),
                     SizedBox(height: 120),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
-                    ElevatedButton(onPressed: () {Navigator.push(
-                      context,
-                      PageRouteBuilder(pageBuilder: (_, __, ___) => planning_button()),
-                    );}, child: Text("Planning", style: TextStyle(color: Colors.black),) ,style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightBlue[900],
-                    ),),
-
-                    ElevatedButton(onPressed: () {Navigator.push(
-                      context,
-                      PageRouteBuilder(pageBuilder: (_, __, ___) =>request_button()),
-                    );}, child: Text("Requests", style: TextStyle(color: Colors.black),) ,style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightBlue[900]
-                    ),),
-                    ElevatedButton(onPressed: () {Navigator.push(
-                      context,
-                      PageRouteBuilder(pageBuilder: (_, __, ___) => ActivityTimeButton()),
-                    );}, child: Text("Activity Time",style: TextStyle(color: Colors.black),) ,style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightBlue[900]
-                    ),),
-                    ],),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                  pageBuilder: (_, __, ___) =>
+                                      planning_button()),
+                            );
+                          },
+                          child: Text(
+                            "Planning",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                  pageBuilder: (_, __, ___) =>
+                                      request_button()),
+                            );
+                          },
+                          child: Text(
+                            "Requests",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                  pageBuilder: (_, __, ___) =>
+                                      ActivityTimeButton()),
+                            );
+                          },
+                          child: Text(
+                            "Activity Time",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             );
-
           } else {
             return Center(child: CircularProgressIndicator());
           }
@@ -144,7 +186,8 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
         if (specSnapshot.hasData) {
           selectedSpecs = specSnapshot.data!;
         }
-        return Text('Specializations: ${selectedSpecs.join(", ")}', style: TextStyle(fontSize: 16, color: Colors.white));
+        return Text('Specializations: ${selectedSpecs.join(", ")}',
+            style: TextStyle(fontSize: 16, color: Colors.white));
       },
     );
   }
@@ -177,11 +220,15 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
                       decoration: InputDecoration(labelText: 'Logo URL'),
                     ),
                     DropdownButtonFormField<String>(
-                      value: selectedSport != null && specializationsBySport.containsKey(selectedSport) ? selectedSport : null,
+                      value: selectedSport != null &&
+                              specializationsBySport.containsKey(selectedSport)
+                          ? selectedSport
+                          : null,
                       onChanged: (newValue) {
                         setState(() {
                           selectedSport = newValue!;
-                          selectedSpecs = specializationsBySport[selectedSport!] ?? [];
+                          selectedSpecs =
+                              specializationsBySport[selectedSport!] ?? [];
                         });
                       },
                       items: specializationsBySport.keys.map((String value) {
@@ -247,7 +294,6 @@ class _TrainerProfileScreenState extends State<TrainerProfileScreen> {
     );
   }
 
-
   Future<void> updateTrainerProfile(String userId) async {
     await DatabaseService(uid: userId, roleView: '').updateTrainerProfile(
       _firstNameController.text,
@@ -274,7 +320,8 @@ class MultiSelectChip extends StatefulWidget {
   final Function(List<String>) onSelectionChanged;
   final List<String> selectedChoices;
 
-  MultiSelectChip(this.reportList, {required this.onSelectionChanged, required this.selectedChoices});
+  MultiSelectChip(this.reportList,
+      {required this.onSelectionChanged, required this.selectedChoices});
 
   @override
   _MultiSelectChipState createState() => _MultiSelectChipState();

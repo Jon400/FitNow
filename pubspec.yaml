@@ -102,24 +102,17 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
 
   # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  fonts:
-    - family: OpenSans
-      fonts:
-        - asset: assets/fonts/OpenSans-Regular.ttf
-        - asset: assets/fonts/OpenSans-Bold.ttf
-          weight: 700
-    - family: Quicksand
-      fonts:
-        - asset: assets/fonts/Quicksand-regular.ttf
-        - asset: assets/fonts/Quicksand-Bold.ttf
-          weight: 700
-    - family: Quando
-      fonts:
-        - asset: assets/fonts/Quando-Regular.ttf
-          weight: 700
-  # For details regarding fonts from package dependencies,
+  # in this "flutter" section. Each entry in this l
+#        - asset: assets/fonts/OpenSans-Regular.ttf
+#        - asset: assets/fonts/OpenSans-Bold.ttf
+#          weight: 700#    - family: Quicksand
+#      fonts: dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  #        - asset: assets/fonts/Quicksand-regular.ttf
+  #        - asset: assets/fonts/Quicksand-Bold.ttf
+  #          weight: 700
+  #    - family: Quando
+  #      fonts:
+  #        - asset: assets/fonts/Quando-Regular.ttf
+  #          weight: 700
+  # For details regarding fonts from package

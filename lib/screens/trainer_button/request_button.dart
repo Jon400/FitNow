@@ -7,12 +7,12 @@ import '../../models/profile.dart';
 import '../../models/training_session.dart';
 import '../../services/database.dart';
 
-class request_button  extends StatefulWidget {
+class request_button extends StatefulWidget {
   @override
   _RequestButtonState createState() => _RequestButtonState();
 }
 
-class _RequestButtonState extends State<request_button > {
+class _RequestButtonState extends State<request_button> {
   @override
   Widget build(BuildContext context) {
     AppUser? appUser = Provider.of<AppUser?>(context);
@@ -25,7 +25,9 @@ class _RequestButtonState extends State<request_button > {
       child: Scaffold(
         backgroundColor: Colors.grey[900],
         appBar: AppBar(
-          title: Text('Requests from trainees', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          title: Text('Requests from trainees',
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           backgroundColor: Colors.amber,
           bottom: TabBar(
             tabs: [
@@ -37,7 +39,8 @@ class _RequestButtonState extends State<request_button > {
         body: TabBarView(
           children: [
             _buildPendingRequests(appUser.uid), // Pending requests tab
-            _buildApprovedCancelledRequests(appUser.uid), // Approved/Cancelled requests tab
+            _buildApprovedCancelledRequests(
+                appUser.uid), // Approved/Cancelled requests tab
           ],
         ),
       ),
@@ -53,7 +56,8 @@ class _RequestButtonState extends State<request_button > {
           .orderBy('startTime', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
-        return _buildListView(context, snapshot); // Reuses the list view builder method
+        return _buildListView(
+            context, snapshot); // Reuses the list view builder method
       },
     );
   }
@@ -63,16 +67,21 @@ class _RequestButtonState extends State<request_button > {
       stream: FirebaseFirestore.instance
           .collection('training_sessions')
           .where('trainerId', isEqualTo: trainerId)
-          .where('status', whereIn: ['approved', 'cancelled']) // Filter for approved or cancelled
+          .where('status', whereIn: [
+            'approved',
+            'cancelled'
+          ]) // Filter for approved or cancelled
           .orderBy('startTime', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
-        return _buildListView(context, snapshot); // Reuses the list view builder method
+        return _buildListView(
+            context, snapshot); // Reuses the list view builder method
       },
     );
   }
 
-  Widget _buildListView(BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+  Widget _buildListView(
+      BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
     if (snapshot.hasError) {
       return Text('Error: ${snapshot.error}');
     }
@@ -85,26 +94,32 @@ class _RequestButtonState extends State<request_button > {
       itemCount: documents.length,
       itemBuilder: (context, index) {
         var doc = documents[index];
-        var trainingSession = TrainingSession.fromFirestore(doc as DocumentSnapshot);
+        var trainingSession =
+            TrainingSession.fromFirestore(doc as DocumentSnapshot);
         return StreamBuilder<Profile>(
-          stream: DatabaseService(uid: trainingSession.traineeId, roleView: '').profile,
+          stream: DatabaseService(uid: trainingSession.traineeId, roleView: '')
+              .profile,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               Profile traineeProfile = snapshot.data!;
               return Card(
                 child: ListTile(
-                  title: Text('From: ${traineeProfile.firstName} ${traineeProfile.lastName}'),
-                  subtitle: Text('${trainingSession.sport} - ${trainingSession.spec}\n${DateFormat('HH:mm').format(trainingSession.startTime)}-${DateFormat('HH:mm').format(trainingSession.endTime)}, ${DateFormat('dd MMM yyyy').format(trainingSession.endTime)}\nStatus : ${trainingSession.status}'),
+                  title: Text(
+                      'From: ${traineeProfile.firstName} ${traineeProfile.lastName}'),
+                  subtitle: Text(
+                      '${trainingSession.sport} - ${trainingSession.spec}\n${DateFormat('HH:mm').format(trainingSession.startTime)}-${DateFormat('HH:mm').format(trainingSession.endTime)}, ${DateFormat('dd MMM yyyy').format(trainingSession.endTime)}\nStatus : ${trainingSession.status}'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: Icon(Icons.check_circle, color: Colors.green),
-                        onPressed: () => _approveRequest(trainingSession.tid, context),
+                        onPressed: () =>
+                            _approveRequest(trainingSession.tid, context),
                       ),
                       IconButton(
                         icon: Icon(Icons.cancel, color: Colors.red),
-                        onPressed: () => _cancelRequest(trainingSession.tid, context),
+                        onPressed: () =>
+                            _cancelRequest(trainingSession.tid, context),
                       ),
                     ],
                   ),
@@ -120,7 +135,15 @@ class _RequestButtonState extends State<request_button > {
   }
 
   void _approveRequest(String sessionId, BuildContext context) {
-    TrainingSession trainingSession = TrainingSession(tid: sessionId, startTime: DateTime.now(), endTime: DateTime.now(), sport: 'sport', spec: 'spec', traineeId: 'traineeId', trainerId: 'trainerId', status: 'status');
+    TrainingSession trainingSession = TrainingSession(
+        tid: sessionId,
+        startTime: DateTime.now(),
+        endTime: DateTime.now(),
+        sport: 'sport',
+        spec: 'spec',
+        traineeId: 'traineeId',
+        trainerId: 'trainerId',
+        status: 'status');
     // wait untill trainingsession.approveRequest is done, if it is done, show snackbar'
     trainingSession.approveTrainingSession().then((_) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -136,7 +159,8 @@ class _RequestButtonState extends State<request_button > {
   }
 
   void _cancelRequest(String sessionId, BuildContext context) {
-    TrainingSession trainingSession = TrainingSession(tid: sessionId,
+    TrainingSession trainingSession = TrainingSession(
+        tid: sessionId,
         startTime: DateTime.now(),
         endTime: DateTime.now(),
         sport: 'sport',

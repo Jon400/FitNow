@@ -67,7 +67,8 @@ class _PlanningScreenState extends State<planning_button> {
   void _generateEvents() {
     _events = {};
     for (var session in _trainingSessions) {
-      DateTime dateKey = DateTime(session.startTime!.year, session.startTime!.month, session.startTime!.day);
+      DateTime dateKey = DateTime(session.startTime!.year,
+          session.startTime!.month, session.startTime!.day);
       if (!_events.containsKey(dateKey)) {
         _events[dateKey] = [];
       }
@@ -76,7 +77,8 @@ class _PlanningScreenState extends State<planning_button> {
   }
 
   List<TrainingSession> _getSessionsForSelectedDay() {
-    DateTime dateKey = DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
+    DateTime dateKey =
+        DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
     return _events[dateKey] ?? [];
   }
 
@@ -86,32 +88,71 @@ class _PlanningScreenState extends State<planning_button> {
       return const Center(child: CircularProgressIndicator());
     }
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: const Text('My Planning', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        backgroundColor:Colors.amber,
+        title: const Text('My Planning',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.amber,
       ),
       body: Column(
         children: [
-          TableCalendar(
-            focusedDay: _focusedDay,
-            firstDay: DateTime.utc(2010, 1, 1),
-            lastDay: DateTime.utc(2040, 1, 1),
-            calendarFormat: _calendarFormat,
-            onFormatChanged: (format) {
-              setState(() {
-                _calendarFormat = format;
-              });
-            },
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            eventLoader: (day) => _events[day] ?? [],
-          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors
+                  .white, // Set the background color of the container, // Add rounded corners
+            ),
+            child: TableCalendar(
+              focusedDay: _focusedDay,
+              firstDay: DateTime.utc(2010, 1, 1),
+              lastDay: DateTime.utc(2040, 1, 1),
+              calendarFormat: _calendarFormat,
+              onFormatChanged: (format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              },
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+              eventLoader: (day) => _events[day] ?? [],
+              calendarStyle: const CalendarStyle(
+                weekendTextStyle: TextStyle(
+                  color: Colors.blue, // Change text color
+                ),
+                todayDecoration: BoxDecoration(
+                  color: Colors.blueGrey, // Change button's background color
+                  shape: BoxShape.rectangle,
+                ),
+                selectedDecoration: BoxDecoration(
+                  color: Colors.amber, // Change button's background color
+                  shape: BoxShape.rectangle,
+                ),
+              ),
+              headerStyle: const HeaderStyle(
+                titleCentered: true,
+                titleTextStyle: TextStyle(
+                  color: Colors.blue, // Change text color
+                  fontWeight: FontWeight.bold,
+
+                ),
+              ),
+              daysOfWeekStyle: const DaysOfWeekStyle(
+              weekdayStyle: TextStyle(
+                color: Colors.black, // Change text color
+                fontWeight: FontWeight.bold,
+
+              ),
+              weekendStyle: TextStyle(
+                color: Colors.blue, // Change text color
+                fontWeight: FontWeight.bold,
+
+              ),
+            ),
+          )),
           Expanded(
             child: ListView.builder(
               itemCount: _getSessionsForSelectedDay().length,
@@ -119,20 +160,29 @@ class _PlanningScreenState extends State<planning_button> {
                 final trainingSession = _getSessionsForSelectedDay()[index];
                 // Use a StreamBuilder to fetch and display trainer names
                 return StreamBuilder<Profile>(
-                  stream: DatabaseService(uid: trainingSession.traineeId, roleView: 'trainee').profile,
+                  stream: DatabaseService(
+                          uid: trainingSession.traineeId, roleView: 'trainee')
+                      .profile,
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       Profile traineeProfile = snapshot.data!;
-                      return ListTile(
-                        title: Text('Trainee: ${traineeProfile.firstName} ${traineeProfile.lastName}'),
-                        subtitle: Text('${DateFormat('HH:mm').format(trainingSession.startTime)}' +
-                            ' -  ${DateFormat('HH:mm').format(trainingSession.endTime)}'),
+                      return Card(
+                        child: ListTile(
+                          title: Text(
+                              'Trainee: ${traineeProfile.firstName} ${traineeProfile.lastName}'),
+                          subtitle: Text(
+                              '${DateFormat('HH:mm').format(trainingSession.startTime)}' +
+                                  ' -  ${DateFormat('HH:mm').format(trainingSession.endTime)}'),
+                        ),
                       );
                     } else {
-                      return ListTile(
-                        title: Text('Loading trainer name...'),
-                        subtitle: Text('Start Time: ${DateFormat('dd MMM yyyy HH:mm:ss').format(trainingSession.startTime)}\n' +
-                            'End Time: ${DateFormat('dd MMM yyyy HH:mm:ss').format(trainingSession.endTime)}'),
+                      return Card(
+                        child: ListTile(
+                          title: Text('Loading trainer name...'),
+                          subtitle: Text(
+                              'Start Time: ${DateFormat('dd MMM yyyy HH:mm:ss').format(trainingSession.startTime)}\n' +
+                                  'End Time: ${DateFormat('dd MMM yyyy HH:mm:ss').format(trainingSession.endTime)}'),
+                        ),
                       );
                     }
                   },
