@@ -44,6 +44,8 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
       if(mounted) { // Check if the widget is still in the widget tree
         setState(() {
           _workingTimes = timeSlots;
+          // sort the time slots by start time
+          _workingTimes.sort((a, b) => a.startTime.compareTo(b.startTime));
         });
       }
     });
@@ -198,20 +200,12 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
               backgroundColor: Colors.green,
             ));
           }).catchError((error) {
-            if (error is Exception) {
-              // show a snackbar
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text("The new availability time overlaps with an existing time range."),
-                backgroundColor: Colors.red,
-              ));
-            }
-            else {
-              // show a snackbar
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text("Error Adding Time Range"),
-                backgroundColor: Colors.red,
-              ));
-            }
+            // show a snackbar
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              // remove the word "Excetpion" from the error message "error"
+              content: Text("Error Adding Time Range - $error"),
+              backgroundColor: Colors.red,
+            ));
           });
         });
   }
@@ -226,7 +220,7 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
     }).catchError((error) {
       // show a snackbar
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Error Removing Time Range"),
+        content: Text("Error Removing Time Range - $error"),
         backgroundColor: Colors.red,
       ));
     });
@@ -243,19 +237,10 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
               backgroundColor: Colors.green,
             ));
           }).catchError((error) {
-            if (error is Exception) {
-              // show a snackbar
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text("The edited availability time overlaps with an existing time range."),
+                content: Text("Error Updating Time Range - $error"),
                 backgroundColor: Colors.red,
               ));
-            }
-            else {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text("Error Updating Time Range"),
-                backgroundColor: Colors.red,
-              ));
-            }
           });
         });
   }

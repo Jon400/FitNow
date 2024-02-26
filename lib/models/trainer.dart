@@ -132,6 +132,11 @@ class TrainerProfile extends Profile {
   }
 
   Future<void> createAvailabilityTime(TimeRange timeRange) async {
+    // check if time range is not valid
+    if (timeRange.startTime.isAfter(timeRange.endTime)) {
+      throw Exception('The start time must be before the end time.');
+    }
+
     final collectionRef = FirebaseFirestore.instance
         .collection('profiles')
         .doc(pid)
