@@ -40,6 +40,7 @@ class Profile with ChangeNotifier {
     return FirebaseFirestore.instance
         .collection('training_sessions')
         .where('traineeId', isEqualTo: pid)
+        .where('status', whereIn: ['pending', 'approved'])
         .snapshots()
         .map(_trainingSessionsFromSnapshot);
   }

@@ -95,6 +95,14 @@ class TrainingSession {
     }
   }
 
+  // delete training session from the database, (changes the status to deleted)
+  Future<void> deleteTrainingSession() async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    await firestore.collection('training_sessions').doc(tid).update({
+      'status': 'deleted'
+    });
+  }
+
   // this function will stream out all requests that are associated with the training session
   // the requests will be streamed out in a list of request objects
   Stream<List<Request>> streamRequests() {
