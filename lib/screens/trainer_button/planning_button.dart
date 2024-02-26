@@ -20,6 +20,7 @@ class _PlanningScreenState extends State<planning_button> {
   late DateTime _selectedDay;
   Map<DateTime, List<TrainingSession>> _events = {};
   bool _isLoading = true;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
 
   @override
   void initState() {
@@ -96,7 +97,12 @@ class _PlanningScreenState extends State<planning_button> {
             focusedDay: _focusedDay,
             firstDay: DateTime.utc(2010, 1, 1),
             lastDay: DateTime.utc(2040, 1, 1),
-            calendarFormat: CalendarFormat.month,
+            calendarFormat: _calendarFormat,
+            onFormatChanged: (format) {
+              setState(() {
+                _calendarFormat = format;
+              });
+            },
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {

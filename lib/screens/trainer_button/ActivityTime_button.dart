@@ -30,16 +30,28 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
       sport: '',
       specializations: [],
     );
+    if (mounted) {
+      setState(() {
+        _focusedDay = DateTime.now();
+      });
+    }
     _listenToAvailability();
   }
 
   void _listenToAvailability() {
-    // Listening to the trainer's availability
+    // Assuming getAvailabilityTime returns a Stream
     _trainerProfile.getAvailabilityTime().listen((timeSlots) {
-      setState(() {
-        _workingTimes = timeSlots;
-      });
+      if(mounted) { // Check if the widget is still in the widget tree
+        setState(() {
+          _workingTimes = timeSlots;
+        });
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -47,7 +59,7 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
     return Scaffold(
       backgroundColor: Colors.grey[400],
       appBar: AppBar(
-        title: const Text('Activity Time', style: TextStyle(color: Colors.black ,fontWeight: FontWeight.bold),),
+        title: const Text('Activity Time', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.amber,
       ),
       body: Column(
@@ -57,6 +69,11 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
             calendarFormat: _calendarFormat,
+            onFormatChanged: (format) {
+              setState(() {
+                _calendarFormat = format;
+              });
+            },
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
@@ -66,7 +83,7 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
             },
             calendarStyle: const CalendarStyle(
               todayDecoration: BoxDecoration(
-                color:  Color(0xFF7B6F72), // Change button's background color
+                color: Color(0xFF7B6F72), // Change button's background color
                 shape: BoxShape.circle,
               ),
               selectedDecoration: BoxDecoration(
@@ -80,15 +97,35 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
               itemCount: _workingTimes.length,
               itemBuilder: (context, index) {
                 final timeRange = _workingTimes[index];
-                if (_selectedDay != null &&
-                    isSameDay(_selectedDay, timeRange.startTime)) {
-                  return ListTile(
-                    title: Text(
-                      '${timeRange.startTime.hour.toString().padLeft(2, '0')}:${timeRange.startTime.minute.toString().padLeft(2, '0')} - ${timeRange.endTime.hour.toString().padLeft(2, '0')}:${timeRange.endTime.minute.toString().padLeft(2, '0')}',
+                if (_selectedDay != null && isSameDay(_selectedDay, timeRange.startTime)) {
+                  // Convert time to a more user-friendly format
+                  String startTime = '${timeRange.startTime.hour.toString().padLeft(2, '0')}:${timeRange.startTime.minute.toString().padLeft(2, '0')}';
+                  String endTime = '${timeRange.endTime.hour.toString().padLeft(2, '0')}:${timeRange.endTime.minute.toString().padLeft(2, '0')}';
+                  return Card(
+                    margin: EdgeInsets.all(8.0),
+                    child: ListTile(
+                      title: Text(
+                        '$startTime - $endTime',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      //subtitle: Text('Available Time Range'),
+                      trailing: Wrap(
+                        spacing: 12, // space between two icons
+                        children: <Widget>[
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () => _editTimeRange(timeRange),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () => _removeTimeRange(timeRange),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 } else {
-                  return Container();
+                  return Container(); // Return an empty container for non-matching days
                 }
               },
             ),
@@ -97,7 +134,6 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
             onPressed: _addTimeRange,
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white, backgroundColor: Colors.lightBlue[900], // Change text color
-
             ),
             child: Text("Select Time Range"), // Change button's text
           ),
@@ -156,9 +192,70 @@ class _ActivityTimeButtonState extends State<ActivityTimeButton> {
             (DateTime start, DateTime end) {
           TimeRange newTimeRange = TimeRange(startTime: start, endTime: end);
           _trainerProfile.createAvailabilityTime(newTimeRange).then((_) {
-            // Optionally refresh the list or show a success message
+            // show a snackbar
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("Time Range Added"),
+              backgroundColor: Colors.green,
+            ));
           }).catchError((error) {
-            // Handle errors, such as showing an error message
+            if (error is Exception) {
+              // show a snackbar
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text("The new availability time overlaps with an existing time range."),
+                backgroundColor: Colors.red,
+              ));
+            }
+            else {
+              // show a snackbar
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text("Error Adding Time Range"),
+                backgroundColor: Colors.red,
+              ));
+            }
+          });
+        });
+  }
+
+  void _removeTimeRange(TimeRange timeRange) {
+    _trainerProfile.removeAvailabilityTime(timeRange).then((_) {
+      // show a snackbar
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Time Range Removed"),
+        backgroundColor: Colors.green,
+      ));
+    }).catchError((error) {
+      // show a snackbar
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Error Removing Time Range"),
+        backgroundColor: Colors.red,
+      ));
+    });
+  }
+
+  void _editTimeRange(TimeRange timeRange) {
+    _showTimeRangePicker(timeRange.startTime, timeRange.endTime,
+            (DateTime start, DateTime end) {
+          TimeRange newTimeRange = TimeRange(startTime: start, endTime: end);
+          _trainerProfile.updateAvailabilityTime(timeRange, newTimeRange).then((_) {
+            // show a snackbar
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("Time Range Updated"),
+              backgroundColor: Colors.green,
+            ));
+          }).catchError((error) {
+            if (error is Exception) {
+              // show a snackbar
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text("The edited availability time overlaps with an existing time range."),
+                backgroundColor: Colors.red,
+              ));
+            }
+            else {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text("Error Updating Time Range"),
+                backgroundColor: Colors.red,
+              ));
+            }
           });
         });
   }

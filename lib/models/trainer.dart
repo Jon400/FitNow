@@ -131,16 +131,60 @@ class TrainerProfile extends Profile {
         .map((snapshot) => snapshot.docs.map((doc) => TimeRange.fromFirestore(doc)).toList());
   }
 
-  // Create a new availability time
   Future<void> createAvailabilityTime(TimeRange timeRange) async {
+    final collectionRef = FirebaseFirestore.instance
+        .collection('profiles')
+        .doc(pid)
+        .collection('datesAvailability');
+
+    // Step 1: Query for documents where 'endTime' is greater than the new 'startTime'.
+    final querySnapshot = await collectionRef
+        .where('endTime', isGreaterThan: timeRange.startTime)
+        .get();
+
+    // Step 2: Filter in the client to find any that actually overlap.
+    final overlaps = querySnapshot.docs.where((doc) {
+      final startTime = (doc.data() as Map<String, dynamic>)['startTime'].toDate();
+      return startTime.isBefore(timeRange.endTime);
+    }).toList();
+
+    // If any documents are found, it means there is an overlap.
+    if (overlaps.isNotEmpty) {
+      throw Exception('The new availability time overlaps with an existing time range.');
+    }
+
+    // If no overlap, proceed to add the new time range.
+    await collectionRef.add({
+      'startTime': timeRange.startTime,
+      'endTime': timeRange.endTime,
+    });
+  }
+
+  // Remove an availability time
+  Future<void> removeAvailabilityTime(TimeRange timeRange) async {
     await FirebaseFirestore.instance
         .collection('profiles')
         .doc(pid)
         .collection('datesAvailability')
-        .add({
-      'startTime': timeRange.startTime,
-      'endTime': timeRange.endTime,
+        .where('startTime', isEqualTo: timeRange.startTime)
+        .where('endTime', isEqualTo: timeRange.endTime)
+        .get()
+        .then((snapshot) {
+      for (DocumentSnapshot doc in snapshot.docs) {
+        doc.reference.delete();
+      }
     });
+  }
+
+  // Edit an availability time
+  Future<void> updateAvailabilityTime(TimeRange oldTimeRange, TimeRange newTimeRange) async {
+    await removeAvailabilityTime(oldTimeRange);
+    try {
+      await createAvailabilityTime(newTimeRange);
+    } catch (e) {
+      await createAvailabilityTime(oldTimeRange);
+      throw e;
+    }
   }
 }
 
