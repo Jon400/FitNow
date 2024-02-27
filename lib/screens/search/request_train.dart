@@ -411,7 +411,7 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog> {
           mainAxisSize: MainAxisSize.min,
           children: widget.availableTimeSlots.map((timeSlot) {
             return ListTile(
-              title: Text('Start Time: ${DateFormat('dd MMM yyyy, hh:mm a').format(timeSlot.startTime)} - ${DateFormat('hh:mm a').format(timeSlot.endTime)}'),
+              title: Text('Time Slot: ${DateFormat('dd MMM yyyy, hh:mm a').format(timeSlot.startTime)} - ${DateFormat('hh:mm a').format(timeSlot.endTime)}', style: TextStyle(color: Colors.black)),
                   onTap: () {
                 selectTime(timeSlot.startTime, true).then((_) {
                   // choose the text "choose end time" if the start time is selected
