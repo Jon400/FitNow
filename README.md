@@ -2,6 +2,7 @@
 
 Android application developed using Flutter and Dart programming language. 
 We are using Firebase for the backend of the application.
+In docs directory there are the tasks in the course.
 
 ## Screenshots
 ![image](https://github.com/Jon400/FitNow/assets/117816462/1108e9ea-7fbe-41bc-85b5-0c1d0ee486b6)
